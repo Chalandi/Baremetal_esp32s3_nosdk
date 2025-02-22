@@ -1,0 +1,13 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+          "label": "Run Openocd",
+          "type": "shell",
+          "command": "Tools/openocd/openocd.exe -f Tools/openocd/openocd_esp32s3.cfg",
+          "isBackground": true,
+          "problemMatcher": [
+          ]
+        }
+    ]
+}

@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug ESP32-S3",
+      "type": "cppdbg",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      "program": "Output/baremetal_esp32s3_nosdk.elf",
+      "svdPath": "Code/Mcal/esp32s3.svd",
+      "miDebuggerPath": "xtensa-esp32s3-elf-gdb",
+      "miDebuggerServerAddress": "localhost:3333",
+      "MIMode": "gdb",
+      "stopAtEntry": true,
+      "preLaunchTask": "Run Openocd",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ]
+}
