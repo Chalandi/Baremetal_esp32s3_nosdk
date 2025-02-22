@@ -1,0 +1,56 @@
+﻿name: Baremetal_esp32s3_nosdk
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  target-xtensa-esp32-gcc:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Install xtensa gcc Toolchain v14.2.0
+        run: |
+          pip install esptool
+          sudo mkdir -p /xtensa-toolchain
+          wget https://github.com/espressif/crosstool-NG/releases/download/esp-14.2.0_20241119/xtensa-esp-elf-14.2.0_20241119-x86_64-linux-gnu.tar.xz
+          sudo tar -xf xtensa-esp-elf-14.2.0_20241119-x86_64-linux-gnu.tar.xz -C /xtensa-toolchain
+
+      - name: Verify Toolchain Installation
+        run: |
+          sudo ls -la /xtensa-toolchain/xtensa-esp-elf/bin
+          sudo find /xtensa-toolchain -name xtensa-esp32s3-elf-gcc
+
+      - name: Add xtensa Toolchain to PATH
+        run: |
+          echo "XTENSA_TOOLCHAIN=/xtensa-toolchain/xtensa-esp-elf/bin/" >> $GITHUB_ENV
+          echo "PATH=XTENSA_TOOLCHAIN:$PATH" >> $GITHUB_ENV
+
+      - name: Verify PATH and Check xtensa-esp32s3-elf-gcc
+        run: |
+          echo "Current PATH: $PATH"
+          echo "XTENSA_TOOLCHAIN: $XTENSA_TOOLCHAIN"
+          which xtensa-esp32s3-elf-gcc || echo "xtensa-esp32s3-elf-gcc not found"
+
+      - name: Verify PATH in a New Step
+        run: |
+          echo "Updated PATH: $PATH"
+          which xtensa-esp32s3-elf-gcc || echo "xtensa-esp32s3-elf-gcc not found"
+
+      - name: Run Rebuild with Absolute Path
+        env:
+          GITHUB_ACTIONS: true
+        run: |
+          /xtensa-toolchain/xtensa-esp-elf/bin/xtensa-esp32s3-elf-gcc --version
+          cd ./Build
+          export PATH=/xtensa-toolchain/xtensa-esp-elf/bin:$PATH
+          sudo chmod +x ./Rebuild.sh
+          ./Rebuild.sh
