@@ -40,92 +40,18 @@
 #define WS2812_ONE             WS2812_HIGH; WS2812_HIGH; WS2812_HIGH; WS2812_LOW
 #define WS2812_ZERO            WS2812_HIGH; WS2812_LOW; WS2812_LOW; WS2812_LOW
 
-  #define WS2812_GREEN_ONLY() \
-  /* Green */                 \
-  WS2812_ONE;                 \
-  WS2812_ONE;                 \
-  WS2812_ONE;                 \
-  WS2812_ONE;                 \
-  WS2812_ONE;                 \
-  WS2812_ONE;                 \
-  WS2812_ONE;                 \
-  WS2812_ONE;                 \
-  /* Red */                   \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  /* Blue */                  \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO;                \
-  WS2812_ZERO
 
-  #define WS2812_RED_ONLY() \
-  /* Green */               \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  /* Red */                 \
-  WS2812_ONE;               \
-  WS2812_ONE;               \
-  WS2812_ONE;               \
-  WS2812_ONE;               \
-  WS2812_ONE;               \
-  WS2812_ONE;               \
-  WS2812_ONE;               \
-  WS2812_ONE;               \
-  /* Blue */                \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO;              \
-  WS2812_ZERO
+  #define WS2812_GREEN_ONLY()  /* G */ WS2812_ZERO; WS2812_ZERO; WS2812_ONE; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO;  \
+                               /* R */ WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; \
+                               /* B */ WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO
 
-  #define WS2812_BLUE_ONLY() \
-  /* Green */                \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  /* Red */                  \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  WS2812_ZERO;               \
-  /* Blue */                 \
-  WS2812_ONE;                \
-  WS2812_ONE;                \
-  WS2812_ONE;                \
-  WS2812_ONE;                \
-  WS2812_ONE;                \
-  WS2812_ONE;                \
-  WS2812_ONE;                \
-  WS2812_ONE
+  #define WS2812_RED_ONLY()    /* G */ WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO;  \
+                               /* R */ WS2812_ZERO; WS2812_ZERO; WS2812_ONE; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO;   \
+                               /* B */ WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO
+
+  #define WS2812_BLUE_ONLY()   /* G */ WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO;  \
+                               /* R */ WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO;  \
+                               /* B */ WS2812_ZERO; WS2812_ZERO; WS2812_ONE; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO; WS2812_ZERO
 
 //=============================================================================
 // Prototypes
