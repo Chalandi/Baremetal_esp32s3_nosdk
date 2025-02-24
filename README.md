@@ -11,7 +11,8 @@ Features :
   - Interrupt vector tables for both cores
   - 1 Hz interrupt generated from the Xtensa LX7 private timer (Timer1 interrupt via IRQ6)
   - LED blinking from both cores
-  - Multicore Debug environment configuration for VSCode (using the built-in JTAG interface, GDB and OpenOCD).
+  - WS2812 switching color from core 1 interrupt
+  - Multicore Debug environment configuration for VSCode (using the built-in JTAG interface, GDB and OpenOCD)
 
 
 A clear and easy-to-understand implementation in C11 and assembly with a build system based on GNU Make makes this project both fun and educational.
