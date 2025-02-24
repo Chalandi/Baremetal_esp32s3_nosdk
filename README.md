@@ -59,5 +59,4 @@ This tools is needed to build, flash and debug this project:
 
 ## Continuous Integration
 
-CI runs on pushes and pull-requests with a simple build and result verification on `ubuntu-latest`
-using GutHub Actions.
+CI runs on pushes and pull-requests with a simple build and result verification on `ubuntu-latest` using GitHub Actions.
