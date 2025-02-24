@@ -22,15 +22,110 @@
 #include "esp32s3.h"
 
 //=============================================================================
-// Macros
-//=============================================================================
-
-//=============================================================================
 // Defines
 //=============================================================================
 #define CORE0_LED  (1ul << 7)
 #define CORE1_LED  (1ul << 6)
-#define APB_FREQ_MHZ  80000000
+#define APB_FREQ_MHZ  80000000ul
+#define LED_BLINK_FREQ_1HZ  (APB_FREQ_MHZ/2)
+
+//=============================================================================
+// Macros
+//=============================================================================
+
+/* Macros for the WS2812 */
+#define WS2812_PIN             48u
+#define WS2812_HIGH            GPIO->OUT1.reg |= (1ul << (WS2812_PIN - 32))
+#define WS2812_LOW             GPIO->OUT1.reg &= ~((1ul << (WS2812_PIN - 32)))
+#define WS2812_ONE             WS2812_HIGH; WS2812_HIGH; WS2812_HIGH; WS2812_LOW
+#define WS2812_ZERO            WS2812_HIGH; WS2812_LOW; WS2812_LOW; WS2812_LOW
+
+  #define WS2812_GREEN_ONLY() \
+  /* Green */                 \
+  WS2812_ONE;                 \
+  WS2812_ONE;                 \
+  WS2812_ONE;                 \
+  WS2812_ONE;                 \
+  WS2812_ONE;                 \
+  WS2812_ONE;                 \
+  WS2812_ONE;                 \
+  WS2812_ONE;                 \
+  /* Red */                   \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  /* Blue */                  \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO;                \
+  WS2812_ZERO
+
+  #define WS2812_RED_ONLY() \
+  /* Green */               \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  /* Red */                 \
+  WS2812_ONE;               \
+  WS2812_ONE;               \
+  WS2812_ONE;               \
+  WS2812_ONE;               \
+  WS2812_ONE;               \
+  WS2812_ONE;               \
+  WS2812_ONE;               \
+  WS2812_ONE;               \
+  /* Blue */                \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO;              \
+  WS2812_ZERO
+
+  #define WS2812_BLUE_ONLY() \
+  /* Green */                \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  /* Red */                  \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  WS2812_ZERO;               \
+  /* Blue */                 \
+  WS2812_ONE;                \
+  WS2812_ONE;                \
+  WS2812_ONE;                \
+  WS2812_ONE;                \
+  WS2812_ONE;                \
+  WS2812_ONE;                \
+  WS2812_ONE;                \
+  WS2812_ONE
 
 //=============================================================================
 // Prototypes
@@ -47,8 +142,7 @@ extern void set_cpu_private_timer1(uint32_t ticks);
 //=============================================================================
 // Globals
 //=============================================================================
-volatile uint32_t x = 0xa5a5a5a5;
-volatile uint32_t y;
+
 
 //-----------------------------------------------------------------------------------------
 /// \brief  main function
@@ -67,7 +161,7 @@ void main(void)
   Mcu_StartCore1();
 
   /* set the private cpu timer1 for core 0 */
-  set_cpu_private_timer1(APB_FREQ_MHZ);
+  set_cpu_private_timer1(LED_BLINK_FREQ_1HZ);
 
   for(;;);
 }
@@ -87,7 +181,7 @@ void main_c1(void)
   enable_irq((uint32_t)-1);
 
   /* set the private cpu timer1 for core 1 */
-  set_cpu_private_timer1(APB_FREQ_MHZ);
+  set_cpu_private_timer1(LED_BLINK_FREQ_1HZ);
 
   for(;;);
 }
@@ -100,13 +194,30 @@ void main_c1(void)
 //-----------------------------------------------------------------------------------------
 void blink_led(void)
 {
+  static uint32_t color = 0;
   /* reload the private timer1 */
-  set_cpu_private_timer1(APB_FREQ_MHZ);
+  set_cpu_private_timer1(LED_BLINK_FREQ_1HZ);
   
   /* toggle the leds */
   if(get_core_id())
   {
     GPIO->OUT.reg ^= CORE1_LED;
+
+    if(color == 0)
+    {
+        WS2812_GREEN_ONLY();
+    }
+    else if(color == 1)
+    {
+        WS2812_RED_ONLY();
+    }
+    else
+    {
+        WS2812_BLUE_ONLY();
+    }
+
+    if(++color > 2)
+      color^=color;
   }
   else
   {
