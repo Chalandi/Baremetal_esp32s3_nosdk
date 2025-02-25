@@ -14,34 +14,27 @@
 ############################################################################################
 # Defines
 ############################################################################################
-PRJ_NAME    = baremetal_esp32s3_nosdk
+PRJ_NAME    = coprocessor_binary
 OUTPUT_DIR  = $(CURDIR)/../Output
 OBJ_DIR     = $(OUTPUT_DIR)/obj
-LD_SCRIPT   = $(SRC_DIR)/Memory_Map.ld
+LD_SCRIPT   = $(SRC_DIR)/coprocessor.ld
 SRC_DIR     = $(CURDIR)/../Code
-COPROCESSOR = #RISC-V
 RTOS        = 
 PYTHON      = python
-ESPTOOL     = esptool
-ERR_MSG_FORMATER_SCRIPT = $(CURDIR)/../Tools/scripts/CompilerErrorFormater.py
-LINKER_ERR_MSG_FORMATER_SCRIPT = $(CURDIR)/../Tools/scripts/LinkerErrorFormater.py
-FORMAT_LINKER_ERR =
-REFORMAT_BIN      = $(CURDIR)/../Tools/scripts/ConcatenateDataBlocks.py
+ERR_MSG_FORMATER_SCRIPT = $(CURDIR)/../scripts/CompilerErrorFormater.py
+BIN2ASM_SCRIPT = $(CURDIR)/../scripts/bin2asm.py
 
 ############################################################################################
 # Toolchain
 ############################################################################################
-TOOLCHAIN          = xtensa-esp32s3-elf
+TOOLCHAIN          = riscv32-unknown-elf
 
-ARCH               =  -mabi=call0                   \
-                      -mno-text-section-literals    \
-                      -mstrict-align                \
-                      -mlongcalls                   \
-                      -fomit-frame-pointer          \
-                      -fstrict-volatile-bitfields   \
-                      -fno-jump-tables              \
-                      -fno-tree-switch-conversion   \
-                      -fno-stack-protector
+ARCH               = -march=rv32imc         \
+                     -mabi=ilp32            \
+                     -msmall-data-limit=0   \
+                     -falign-functions=4    \
+                     -fomit-frame-pointer
+
 
 DEFS               = -DI_KNOW_WHAT_I_AM_DOING
 
@@ -172,7 +165,7 @@ ifeq ($(LD), $(TOOLCHAIN)-ld)
          -nostdlib                              \
          $(ARCH)                                \
          $(DEFS)                                \
-         -e Startup_Init                        \
+         -e _start                              \
          --print-memory-usage                   \
          --print-map                            \
          -dT $(LD_SCRIPT)                       \
@@ -204,33 +197,19 @@ endif
 
 SRC_FILES := $(SRC_DIR)/Appli/main.c            \
              $(SRC_DIR)/Startup/Startup.c       \
-             $(SRC_DIR)/Startup/IntVect.c       \
              $(SRC_DIR)/Startup/boot.s          \
-             $(SRC_DIR)/Startup/IntVectTable.s  \
-             $(SRC_DIR)/Mcal/Mcu.c              \
-             $(SRC_DIR)/Std/StdLib.c
-
+             $(SRC_DIR)/Std/StdLib.c   
 
 
 ############################################################################################
 # Include Paths
 ############################################################################################
-INC_FILES := $(SRC_DIR)                             \
-             $(SRC_DIR)/Appli                       \
-             $(SRC_DIR)/Mcal                        \
-             $(SRC_DIR)/Startup                     \
+INC_FILES := $(SRC_DIR)                       \
+             $(SRC_DIR)/Appli                 \
+             $(SRC_DIR)/Mcal                  \
+             $(SRC_DIR)/Startup               \
              $(SRC_DIR)/Std
 
-
-############################################################################################
-# Coprocessor build
-############################################################################################
-ifeq ($(COPROCESSOR), RISC-V)
-  DEFS += -DCOPROCESSOR_ENABLED
-  SRC_FILES += $(SRC_DIR)/Coprocessor/Output/coprocessor_binary.s
-  COPROCESSOR_MAKEFILE = coprocessor.mk
-  COPROCESSOR_MAKEFILE_DIR =../Code/Coprocessor/Build
-endif
 
 ############################################################################################
 # RTOS Files
@@ -244,49 +223,44 @@ endif
 # Rules
 ############################################################################################
 
-VPATH := $(subst \,/,$(sort $(dir $(SRC_FILES)) $(OBJ_DIR)))
-FILES_O := $(addprefix $(OBJ_DIR)/, $(notdir $(addsuffix .o, $(basename $(SRC_FILES)))))
+VPATH = $(subst \,/,$(sort $(dir $(SRC_FILES)) $(OBJ_DIR)))
+
+FILES_O = $(addprefix $(OBJ_DIR)/, $(notdir $(addsuffix .o, $(basename $(SRC_FILES)))))
 
 ifeq ($(MAKECMDGOALS), BUILD_STAGE_2)
 -include $(subst .o,.d,$(FILES_O))
 endif
 
 REBUILD_STAGE_1 : CLEAN PRE_BUILD
-REBUILD_STAGE_2 : link
+REBUILD_STAGE_2 : LINK
 REBUILD_STAGE_3 : GENERATE POST_BUILD
 
 BUILD_STAGE_1   : PRE_BUILD
-BUILD_STAGE_2   : link
+BUILD_STAGE_2   : LINK
 BUILD_STAGE_3   : GENERATE POST_BUILD
 
 ############################################################################################
 # Recipes
 ############################################################################################
-.PHONY : link
-link : $(OUTPUT_DIR)/$(PRJ_NAME).elf
+.PHONY : LINK
+LINK : $(OUTPUT_DIR)/$(PRJ_NAME).elf
 	@-echo "" > /dev/null
+
 
 .PHONY : PRE_BUILD
 PRE_BUILD:
-ifeq ($(COPROCESSOR), RISC-V)
-	@make REBUILD_STAGE_1 -C $(COPROCESSOR_MAKEFILE_DIR) -f $(COPROCESSOR_MAKEFILE) --no-print-directory
-	@make REBUILD_STAGE_2 -k -j $(getconf _NPROCESSORS_ONLN) -C $(COPROCESSOR_MAKEFILE_DIR) -f $(COPROCESSOR_MAKEFILE) --no-print-directory
-	@make REBUILD_STAGE_3 -C $(COPROCESSOR_MAKEFILE_DIR) -f $(COPROCESSOR_MAKEFILE) --no-print-directory
-#	@false
-endif
-	@-echo +++ Building ESP32-S3 baremetal image
-	@command -v $(ESPTOOL) >/dev/null 2>&1 || pip install $(ESPTOOL)
+	@-echo +++ Building ESP32-S3 RISC-V coprocessor image
 	@git log -n 1 --decorate-refs=refs/heads/ --pretty=format:"+++ Git branch: %D (%h)" 2>/dev/null || true
 	@git log -n 1 --clear-decorations 2> /dev/null > /dev/null || true
 	@echo +++ info: "$(shell $(CC) -v 2>&1 | tail -n 1)"
 	@echo +++ info: "$(shell make -v 2>&1 | head -n 1)"
 	@echo +++ info: "$(shell $(PYTHON) --version 2>&1 | head -n 1)"
-	@echo +++ info: "$(shell $(ESPTOOL) version 2>&1 | head -n 1)"
 	@$(if $(shell test -d $(OBJ_DIR) && echo yes),,mkdir -p $(subst \,/,$(OBJ_DIR)))
 
 .PHONY : POST_BUILD
 POST_BUILD:
 	@-echo +++ End
+	@-echo ""
 
 
 .PHONY : CLEAN
@@ -300,7 +274,6 @@ CLEAN :
 	@-rm -rf $(OUTPUT_DIR)/$(PRJ_NAME).sym     2>/dev/null || true
 	@-rm -rf $(OBJ_DIR)                        2>/dev/null || true
 	@-mkdir -p $(subst \,/,$(OUTPUT_DIR))
-
 
 $(OBJ_DIR)/%.o : %.c
 	@-echo +++ compile: $(subst \,/,$<) to $(subst \,/,$@)
@@ -325,7 +298,7 @@ $(OBJ_DIR)/%.o : %.cpp
 	@-$(PYTHON) $(ERR_MSG_FORMATER_SCRIPT) $(OBJ_DIR)/$(basename $(@F)).err -COLOR
 
 $(OUTPUT_DIR)/$(PRJ_NAME).elf : $(FILES_O) $(LD_SCRIPT)
-	@-echo +++ link: $(subst \,/,$@)
+	@-echo +++ LINK: $(subst \,/,$@)
 ifeq ($(FORMAT_LINKER_ERR), )
 	@$(LD) $(LOPS) $(FILES_O) -o $(OUTPUT_DIR)/$(PRJ_NAME).elf
 else
@@ -345,14 +318,6 @@ GENERATE:
 	@-echo +++ generate: $(OUTPUT_DIR)/$(PRJ_NAME).hex
 	@$(OBJCOPY) $(OUTPUT_DIR)/$(PRJ_NAME).elf -O ihex $(OUTPUT_DIR)/$(PRJ_NAME).hex
 	@-echo +++ generate: $(OUTPUT_DIR)/$(PRJ_NAME).bin
-	@$(ESPTOOL) --chip esp32s3 elf2image --flash_mode dio --flash_freq 80m --flash_size 2MB --min-rev-full 0 --max-rev-full 99 -o $(OUTPUT_DIR)/$(PRJ_NAME).bin $(OUTPUT_DIR)/$(PRJ_NAME).elf 2>&1 >/dev/null
-#	@$(ESPTOOL) image_info --version 2 $(OUTPUT_DIR)/$(PRJ_NAME).bin
-#	@$(ESPTOOL) --chip esp32s3 erase_flash 
-	@-echo +++ flash: Flashing the binary to the QSPI Flash Memory ...
-	@$(ESPTOOL) --chip esp32s3 write_flash --flash_mode dio --flash_freq 80m --flash_size 2MB  0 $(OUTPUT_DIR)/$(PRJ_NAME).bin  >/dev/null
-
-ifneq ($(OS_SIZE_SCRIPT), )
-	@-echo  
-	@$(PYTHON) $(OS_SIZE_SCRIPT) $(OUTPUT_DIR)/$(PRJ_NAME).map --sections .text .data .bss
-	@-echo  
-endif
+	@$(OBJCOPY) $(OUTPUT_DIR)/$(PRJ_NAME).elf -O binary $(OUTPUT_DIR)/$(PRJ_NAME).bin
+	@-echo +++ generate: $(OUTPUT_DIR)/$(PRJ_NAME).s
+	@$(PYTHON) $(BIN2ASM_SCRIPT) -i $(OUTPUT_DIR)/$(PRJ_NAME).bin -o $(OUTPUT_DIR)/$(PRJ_NAME).s -s ".coprocessor" -l 16 -g coprocessor_bin

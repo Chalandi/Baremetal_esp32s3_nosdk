@@ -1,4 +1,5 @@
 # ignore output files
+/Code/Coprocessor/Output
 /Output
 
 # ignore Visual Studio's user-specific files

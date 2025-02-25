@@ -1,7 +1,7 @@
 /******************************************************************************************
-  Filename    : Memory_Map.ld
+  Filename    : coprocessor.ld
   
-  Core        : Xtensa LX7
+  Core        : RISC-V
   
   MCU         : ESP32-S3
     
@@ -9,9 +9,9 @@
  
   Owner       : Chalandi Amine
   
-  Date        : 16.02.2025
+  Date        : 24.02.2025
   
-  Description : Linker description file script for ESP32-S3
+  Description : Linker description file script for ESP32-S3 co-processor (ULP-RISC-V)
   
 ******************************************************************************************/
 
@@ -23,8 +23,7 @@ ENTRY(_start)
 /******************************************************************************************
  Globals
 ******************************************************************************************/
-__STACK_SIZE_CORE0 = 2K;
-__STACK_SIZE_CORE1 = 2K;
+__STACK_SIZE = 1K;
 
 /******************************************************************************************
  Memory configuration
@@ -32,9 +31,8 @@ __STACK_SIZE_CORE1 = 2K;
 
 MEMORY
 {
-  D_SRAM(rwx) : ORIGIN = 0x3FC88000, LENGTH = 480K
-  I_SRAM(rw)  : ORIGIN = 0x40370000, LENGTH = 448K
-  ULP_SRAM(rwx) : ORIGIN = 0x50000000, LENGTH = 8K
+  I_SRAM(rwx) : ORIGIN = 0x50000000, LENGTH = 4K
+  D_SRAM(rw)  : ORIGIN = 0x50001000, LENGTH = 4K
 }
 
 /******************************************************************************************
@@ -44,8 +42,8 @@ SECTIONS
 {
   .program : ALIGN(4)
   {
+    *(.boot*)
     *(.vector*)
-    *(.literal .literal.*)
     *(.text)
     *(.text*)
   } > I_SRAM
@@ -123,20 +121,9 @@ SECTIONS
   } > D_SRAM
 
   /* stack definition */
-  .stack_core0 :
+  .stack :
   {
-    . = ALIGN(MAX(__STACK_SIZE_CORE0 , .), 16);
-    PROVIDE(__CORE0_STACK_TOP = .) ;
+    . = ALIGN(MAX(__STACK_SIZE , .), 8);
+    PROVIDE(__STACK_TOP = .);
   } > D_SRAM
-
-  .stack_core1 :
-  {
-    . = ALIGN(MAX(__STACK_SIZE_CORE1 , .), 16);
-    PROVIDE(__CORE1_STACK_TOP = .) ;
-  } > D_SRAM
-
-  .ulp :
-  {
-    *(.coprocessor*)
-  } > ULP_SRAM
 }

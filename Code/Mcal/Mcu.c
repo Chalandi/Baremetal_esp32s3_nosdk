@@ -28,6 +28,7 @@ void Mcu_StartCore1(void);
 void _start(void);
 void Mcu_ClockInit(void);
 void Mcu_InitCore(void);
+void Mcu_StartCoProcessorRiscV(void);
 
 //-----------------------------------------------------------------------------------------
 /// \brief  
@@ -97,4 +98,23 @@ void Mcu_InitCore(void)
   GPIO->ENABLE1_W1TS.reg = 0xFFFFFFFF;
   GPIO->OUT.reg   = 0;
   GPIO->OUT1.reg  = 0; 
+}
+
+//-----------------------------------------------------------------------------------------
+/// \brief  
+///
+/// \param  
+///
+/// \return 
+//-----------------------------------------------------------------------------------------
+void Mcu_StartCoProcessorRiscV(void)
+{
+  RTC_CNTL->COCPU_CTRL.bit.COCPU_SHUT_RESET_EN     = 1;
+  RTC_CNTL->ULP_CP_TIMER.reg                       = 0;
+  RTC_CNTL->COCPU_CTRL.bit.COCPU_CLK_FO            = 1;
+  RTC_CNTL->COCPU_CTRL.bit.COCPU_DONE_FORCE        = 1;
+  RTC_CNTL->COCPU_CTRL.bit.COCPU_CLKGATE_EN        = 1;
+  RTC_CNTL->COCPU_CTRL.bit.COCPU_SEL               = 0;
+  RTC_CNTL->ULP_CP_CTRL.bit.ULP_CP_FORCE_START_TOP = 0;
+  RTC_CNTL->ULP_CP_TIMER.bit.ULP_CP_SLP_TIMER_EN   = 1;
 }
