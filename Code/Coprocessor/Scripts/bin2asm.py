@@ -1,3 +1,16 @@
+#####################################################################################
+# 
+# Filename    : bin2asm.py
+# 
+# Author      : Chalandi Amine
+#
+# Owner       : Chalandi Amine
+# 
+# Date        : 27.02.2025
+# 
+# Description : convert a binary image to assembly file
+# 
+#####################################################################################
 import argparse
 
 def binary_to_assembly(input_file, output_file, section_name, symbol_name, bytes_per_line):

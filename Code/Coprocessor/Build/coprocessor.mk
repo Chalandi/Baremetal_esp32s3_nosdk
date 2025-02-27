@@ -197,7 +197,8 @@ endif
 
 SRC_FILES := $(SRC_DIR)/Appli/main.c            \
              $(SRC_DIR)/Startup/Startup.c       \
-             $(SRC_DIR)/Startup/boot.s          \
+             $(SRC_DIR)/Startup/boot.S          \
+             $(SRC_DIR)/Startup/IntVectTable.S  \
              $(SRC_DIR)/Std/StdLib.c   
 
 
@@ -278,6 +279,11 @@ CLEAN :
 $(OBJ_DIR)/%.o : %.c
 	@-echo +++ compile: $(subst \,/,$<) to $(subst \,/,$@)
 	@-$(CC) $(COPS) $(addprefix -I, $(INC_FILES)) -c $< -o $(OBJ_DIR)/$(basename $(@F)).o 2> $(OBJ_DIR)/$(basename $(@F)).err
+	@-$(PYTHON) $(ERR_MSG_FORMATER_SCRIPT) $(OBJ_DIR)/$(basename $(@F)).err -COLOR
+
+$(OBJ_DIR)/%.o : %.S
+	@-echo +++ compile: $(subst \,/,$<) to $(subst \,/,$@)
+	@-$(CC) -mno-save-restore -static $(OPT) $(ARCH) $(DEFS) $(addprefix -I, $(INC_FILES)) -c $< -o $(OBJ_DIR)/$(basename $(@F)).o 2> $(OBJ_DIR)/$(basename $(@F)).err
 	@-$(PYTHON) $(ERR_MSG_FORMATER_SCRIPT) $(OBJ_DIR)/$(basename $(@F)).err -COLOR
 
 ifeq ($(AS), $(TOOLCHAIN)-as)

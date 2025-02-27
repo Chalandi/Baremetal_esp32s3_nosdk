@@ -6,7 +6,8 @@ Bare Metal ESP32-S3 Project
 This repository implements a fully manually-written bare-metal project for the ESP32-S3 dual-core Xtensa LX7 SoC, without using Espressif's SDK.
 
 Features :
-  - Dual-core booting support
+  - Dual-core Xtensa LX7 booting support
+  - ULP-RISC-V coprocessor booting support
   - Clock configuration: APB clock set to 80 MHz, SoC clock set to 240 MHz
   - Interrupt vector tables for both cores
   - 1 Hz interrupt generated from the Xtensa LX7 private timer (Timer1 interrupt via IRQ6)
@@ -25,7 +26,7 @@ This repository provides valuable insight into starting a bare-metal ESP32-S3 pr
 
 The ESP32-S3's bootRom loads this software from flash memory into internal SRAM during a cold boot.
 
-The low-level startup process begins on core 0, initializing the C/C++ environment and configuring the clock before starting core 1.
+The low-level startup process begins on core 0, initializing the C/C++ environment and configuring the clock before starting core 1 and the coprocessor (ULP-RISC-V).
 
 Both cores then enable interrupts and enter an idle loop. Each core toggles an LED at a 1 Hz frequency using its private timer interrupt.
 

@@ -42,8 +42,8 @@ SECTIONS
 {
   .program : ALIGN(4)
   {
-    *(.boot*)
     *(.vector*)
+    *(.boot*)
     *(.text)
     *(.text*)
   } > I_SRAM
