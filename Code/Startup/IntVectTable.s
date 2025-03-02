@@ -80,6 +80,7 @@
     call0 \isr_name
     RestoreCpuContext
 .endm
+
 /*******************************************************************************************
   \brief  
   
@@ -185,11 +186,11 @@ _vector_handlers:
 
         Level1KernalInterruptVectorHandler:
                         call_isr Isr_Level1KernelInterrupt
-                        rfi 1
+                        rfe
 
         Level1UserInterruptVectorHandler:
                         call_isr Isr_Level1UserInterrupt
-                        rfi 1
+                        rfe
 
 .size _vector_handlers, .-_vector_handlers
 
@@ -210,6 +211,24 @@ enable_irq:
            ret
 
 .size enable_irq, .-enable_irq
+
+/*******************************************************************************************
+  \brief  
+  
+  \param  
+  
+  \return 
+********************************************************************************************/
+.section  .text,"ax"
+.type disable_irq, @function
+.align 4
+.global disable_irq
+
+disable_irq:
+           wsr a0, intclear
+           ret
+
+.size disable_irq, .-disable_irq
 
 /*******************************************************************************************
   \brief  

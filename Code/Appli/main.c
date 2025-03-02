@@ -60,6 +60,8 @@
 void main(void);
 void main_c1(void);
 void blink_led(void);
+void systicktimer_1us_base(void);
+void systicktimer_1ms_base(void);
 
 extern void Mcu_StartCore1(void);
 extern uint32_t get_core_id(void);
@@ -69,7 +71,8 @@ extern void Mcu_StartCoProcessorRiscV(void);
 //=============================================================================
 // Globals
 //=============================================================================
-
+volatile uint64_t SysTickTimer1usBase = 0;
+volatile uint64_t SysTickTimer1msBase = 0;
 
 //-----------------------------------------------------------------------------------------
 /// \brief  main function
@@ -82,8 +85,14 @@ void main(void)
 {
   GPIO->OUT.reg |= CORE0_LED;
 
-  /* enable timer1 interrupt on core 0 */
-  enable_irq((uint32_t)(1UL << 15));
+  /* enable timers interrupt on core 0 */
+  enable_irq((1UL << 16) | (1UL << 15) | (1UL << 6) );
+
+  /* start the systick timer (1us base)*/
+  set_cpu_private_timer(0, 80);
+
+  /* start the systick timer (1ms base)*/
+  set_cpu_private_timer(2, 80000);
 
   /* start the core 1*/
   Mcu_StartCore1();
@@ -119,11 +128,37 @@ void main_c1(void)
   for(;;);
 }
 //-----------------------------------------------------------------------------------------
-/// \brief  main function
+/// \brief  
 ///
-/// \param  void
+/// \param 
 ///
-/// \return void
+/// \return 
+//-----------------------------------------------------------------------------------------
+void systicktimer_1us_base(void)
+{
+  SysTickTimer1usBase++;
+  set_cpu_private_timer(0, 80);
+}
+
+//-----------------------------------------------------------------------------------------
+/// \brief  
+///
+/// \param 
+///
+/// \return 
+//-----------------------------------------------------------------------------------------
+void systicktimer_1ms_base(void)
+{
+  SysTickTimer1msBase++;
+  set_cpu_private_timer(2, 80000);
+}
+
+//-----------------------------------------------------------------------------------------
+/// \brief  
+///
+/// \param 
+///
+/// \return 
 //-----------------------------------------------------------------------------------------
 void blink_led(void)
 {

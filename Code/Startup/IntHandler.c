@@ -34,7 +34,8 @@ void Isr_Level5Interrupt(uint32_t irq);
 // Externs
 //=============================================================================
 extern void blink_led(void);
-
+extern void systicktimer_1us_base(void);
+extern void systicktimer_1ms_base(void);
 
 /*******************************************************************************************
   \brief  
@@ -58,8 +59,8 @@ void Isr_Level1KernelInterrupt(uint32_t irq)
 ********************************************************************************************/
 void Isr_Level1UserInterrupt(uint32_t irq)
 {
-  (void)irq;
-  for(;;);
+  if(irq & (1ul << 6))
+    systicktimer_1us_base();
 }
 
 /*******************************************************************************************
@@ -110,6 +111,6 @@ void Isr_Level4Interrupt(uint32_t irq)
 ********************************************************************************************/
 void Isr_Level5Interrupt(uint32_t irq)
 {
-  (void)irq;
-  for(;;);
+  if(irq & (1ul << 16))
+    systicktimer_1ms_base();
 }
