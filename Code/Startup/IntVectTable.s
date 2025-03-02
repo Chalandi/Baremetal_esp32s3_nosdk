@@ -22,6 +22,58 @@
   
   \return 
 ********************************************************************************************/
+.macro SaveCpuContext
+    addi sp, sp, -4*15
+    s32i.n a0,  sp, 0*4
+    s32i.n a2,  sp, 1*4
+    s32i.n a3,  sp, 2*4
+    s32i.n a4,  sp, 3*4
+    s32i.n a5,  sp, 4*4
+    s32i.n a6,  sp, 5*4
+    s32i.n a7,  sp, 6*4
+    s32i.n a8,  sp, 7*4
+    s32i.n a9,  sp, 8*4
+    s32i.n a10,  sp, 9*4
+    s32i.n a11,  sp, 10*4
+    s32i.n a12,  sp, 11*4
+    s32i.n a13,  sp, 12*4
+    s32i.n a14,  sp, 13*4
+    s32i.n a15,  sp, 14*4
+.endm
+
+/*******************************************************************************************
+  \brief  
+  
+  \param  
+  
+  \return 
+********************************************************************************************/
+.macro RestoreCpuContext
+    l32i.n a0,  sp, 0*4
+    l32i.n a2,  sp, 1*4
+    l32i.n a3,  sp, 2*4
+    l32i.n a4,  sp, 3*4
+    l32i.n a5,  sp, 4*4
+    l32i.n a6,  sp, 5*4
+    l32i.n a7,  sp, 6*4
+    l32i.n a8,  sp, 7*4
+    l32i.n a9,  sp, 8*4
+    l32i.n a10,  sp, 9*4
+    l32i.n a11,  sp, 10*4
+    l32i.n a12,  sp, 11*4
+    l32i.n a13,  sp, 12*4
+    l32i.n a14,  sp, 13*4
+    l32i.n a15,  sp, 14*4
+    addi sp, sp, 4*15
+.endm
+
+/*******************************************************************************************
+  \brief  
+  
+  \param  
+  
+  \return 
+********************************************************************************************/
 .section  .vector,"ax"
 .global _vector_table
 .type _vector_table, @function
@@ -76,11 +128,9 @@ _vector_table:
             .extern blink_led_c0
 
 irq6_timer1:
-             addi sp, sp, -4
-             s32i.n a0,  sp, 0
+             SaveCpuContext
              call0 blink_led
-             l32i.n a0,  sp, 0
-             addi sp, sp, 4
+             RestoreCpuContext
              rfi 3
 
 
@@ -112,25 +162,38 @@ enable_irq:
   \return 
 ********************************************************************************************/
 .section  .text,"ax"
-.type set_cpu_private_timer1, @function
+.type set_cpu_private_timer, @function
 .align 4
-.global set_cpu_private_timer1
+.global set_cpu_private_timer
 
-set_cpu_private_timer1:
-                       movi a11, 0
-                       wsr  a11, ccount
+set_cpu_private_timer:
+                       beqi a2, 0, .L_timer0
+                       beqi a2, 1, .L_timer1
+                       beqi a2, 2, .L_timer2
+                       ret
+.L_timer0:
+                       rsr  a11, ccount
                        esync
-                       wsr  a2, ccompare1
+                       add  a11, a11, a3
+                       wsr  a11, ccompare0
+                       esync
+                       ret
+.L_timer1:
+                       rsr  a11, ccount
+                       esync
+                       add  a11, a11, a3
+                       wsr  a11, ccompare1
+                       esync
+                       ret
+.L_timer2:
+                       rsr  a11, ccount
+                       esync
+                       add  a11, a11, a3
+                       wsr  a11, ccompare2
                        esync
                        ret
 
-.size set_cpu_private_timer1, .-set_cpu_private_timer1
-
-  // software interrupt
-  //movi a10, 0x80;
-  //wsr.intset a10
-  
-  //RSIL --> read and set prio level
+.size set_cpu_private_timer, .-set_cpu_private_timer
 
 /*******************************************************************************************
   \brief  
@@ -155,3 +218,26 @@ _dummy_vector_table:
       nop      // 2-byte op
     .endr
 .size _dummy_vector_table, .-_dummy_vector_table
+
+
+
+  // software interrupt
+  //movi a10, 0x80;
+  //wsr.intset a10
+  
+  //RSIL --> read and set prio level
+
+
+
+/**  CALL0 ABI:
+
+Register   |  Use                            | Preserver
+--------------------------------------------------------------
+a0         |  Return Address                 |  caller-saved
+a1 (sp)    |  Stack Pointer                  |  callee-saved
+a2 – a7    |  Function Arguments             |
+a8 – a11   |  Temporary                      |  caller-saved
+a12 – a15  |                                 |  callee-saved
+a15        |  Stack-Frame Pointer (optional) |
+
+*/

@@ -96,7 +96,7 @@ void main(void)
 //-----------------------------------------------------------------------------------------
 void irq_vector(uint32_t irq)
 {
-  if((irq & 1ul) != 0)
+  if((irq & 7ul) != 0)
   {
     TOGGLE_GPIO18();
     set_timer_counter(TIMEOUT_500MS);

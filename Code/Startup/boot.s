@@ -45,6 +45,7 @@ _start:
         wsr a8, ccompare1
         wsr a8, ccompare2
 
+
         /* setup interrupt vector table */
         movi a10, _vector_table
         wsr a10, vecbase

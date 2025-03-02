@@ -64,7 +64,7 @@ void blink_led(void);
 extern void Mcu_StartCore1(void);
 extern uint32_t get_core_id(void);
 extern void enable_irq(uint32_t mask);
-extern void set_cpu_private_timer1(uint32_t ticks);
+extern void set_cpu_private_timer(uint32_t timer_id, uint32_t ticks);
 extern void Mcu_StartCoProcessorRiscV(void);
 //=============================================================================
 // Globals
@@ -82,8 +82,8 @@ void main(void)
 {
   GPIO->OUT.reg |= CORE0_LED;
 
-  /* enable all interrupts on core 0 */
-  enable_irq((uint32_t)-1);
+  /* enable timer1 interrupt on core 0 */
+  enable_irq((uint32_t)(1UL << 15));
 
   /* start the core 1*/
   Mcu_StartCore1();
@@ -94,7 +94,7 @@ void main(void)
 #endif
 
   /* set the private cpu timer1 for core 0 */
-  set_cpu_private_timer1(LED_BLINK_FREQ_1HZ);
+  set_cpu_private_timer(1, LED_BLINK_FREQ_1HZ);
 
   for(;;);
 }
@@ -110,11 +110,11 @@ void main_c1(void)
 {
   GPIO->OUT.reg |= CORE1_LED;
 
-  /* enable all interrupts on core 1 */
-  enable_irq((uint32_t)-1);
+  /* enable timer1 interrupt on core 1 */
+  enable_irq((uint32_t)(1UL << 15));
 
   /* set the private cpu timer1 for core 1 */
-  set_cpu_private_timer1(LED_BLINK_FREQ_1HZ);
+  set_cpu_private_timer(1, LED_BLINK_FREQ_1HZ);
 
   for(;;);
 }
@@ -132,7 +132,7 @@ void blink_led(void)
 #endif
 
   /* reload the private timer1 */
-  set_cpu_private_timer1(LED_BLINK_FREQ_1HZ);
+  set_cpu_private_timer(1, LED_BLINK_FREQ_1HZ);
   
   /* toggle the leds */
   if(get_core_id())
