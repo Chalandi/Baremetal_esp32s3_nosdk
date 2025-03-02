@@ -19,7 +19,7 @@ OUTPUT_DIR  = $(CURDIR)/../Output
 OBJ_DIR     = $(OUTPUT_DIR)/obj
 LD_SCRIPT   = $(SRC_DIR)/Memory_Map.ld
 SRC_DIR     = $(CURDIR)/../Code
-COPROCESSOR = RISC-V
+COPROCESSOR = #RISC-V
 RTOS        = 
 PYTHON      = python
 ESPTOOL     = esptool
@@ -204,7 +204,7 @@ endif
 
 SRC_FILES := $(SRC_DIR)/Appli/main.c            \
              $(SRC_DIR)/Startup/Startup.c       \
-             $(SRC_DIR)/Startup/IntVect.c       \
+             $(SRC_DIR)/Startup/IntHandler.c    \
              $(SRC_DIR)/Startup/boot.s          \
              $(SRC_DIR)/Startup/IntVectTable.s  \
              $(SRC_DIR)/Mcal/Mcu.c              \

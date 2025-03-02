@@ -74,10 +74,29 @@
   
   \return 
 ********************************************************************************************/
+.macro call_isr isr_name
+    SaveCpuContext
+    rsr a2, interrupt
+    call0 \isr_name
+    RestoreCpuContext
+.endm
+/*******************************************************************************************
+  \brief  
+  
+  \param  
+  
+  \return 
+********************************************************************************************/
 .section  .vector,"ax"
 .global _vector_table
 .type _vector_table, @function
 .align 1024
+.extern Level1KernalInterruptVectorHandler
+.extern Level1UserInterruptVectorHandler
+.extern Level2InterruptVectorHandler
+.extern Level3InterruptVectorHandler
+.extern Level4InterruptVectorHandler
+.extern Level5InterruptVectorHandler
 
 _vector_table:
 
@@ -87,19 +106,19 @@ _vector_table:
 
         .org _vector_table + 0x180
         Level2InterruptVector:
-                        j .
+                        j Level2InterruptVectorHandler
 
         .org _vector_table + 0x1c0
         Level3InterruptVector:
-                        j irq6_timer1
+                        j Level3InterruptVectorHandler
 
         .org _vector_table + 0x200
         Level4InterruptVector:
-                        j .
+                        j Level4InterruptVectorHandler
 
         .org _vector_table + 0x240
         Level5InterruptVector:
-                        j .
+                        j Level5InterruptVectorHandler
 
         .org _vector_table + 0x280
         DebugExceptionVector:
@@ -111,11 +130,11 @@ _vector_table:
 
         .org _vector_table + 0x300
         Level1KernalInterruptVector:
-                        j .
+                        j Level1KernalInterruptVectorHandler
 
         .org _vector_table + 0x340
         Level1UserInterruptVector:
-                        j .
+                        j Level1UserInterruptVectorHandler
 
         .org _vector_table + 0x3C0
         DoubleExceptionVector:
@@ -125,16 +144,54 @@ _vector_table:
         InvalidExceptionVector:
                         j .
 
-            .extern blink_led_c0
-
-irq6_timer1:
-             SaveCpuContext
-             call0 blink_led
-             RestoreCpuContext
-             rfi 3
-
 
 .size _vector_table, .-_vector_table
+
+/*******************************************************************************************
+  \brief  
+  
+  \param  
+  
+  \return 
+********************************************************************************************/
+.section  .text,"ax"
+.global _vector_handlers
+.type _vector_handlers, @function
+.align 4
+.extern Isr_Level1KernelInterrupt
+.extern Isr_Level1UserInterrupt
+.extern Isr_Level2Interrupt
+.extern Isr_Level3Interrupt
+.extern Isr_Level4Interrupt
+.extern Isr_Level5Interrupt
+
+_vector_handlers:
+
+        Level2InterruptVectorHandler:
+                        call_isr Isr_Level2Interrupt
+                        rfi 2
+
+        Level3InterruptVectorHandler:
+                        call_isr Isr_Level3Interrupt
+                        rfi 3
+
+        Level4InterruptVectorHandler:
+                        call_isr Isr_Level4Interrupt
+                        rfi 4
+
+        Level5InterruptVectorHandler:
+                        call_isr Isr_Level5Interrupt
+                        rfi 5
+
+        Level1KernalInterruptVectorHandler:
+                        call_isr Isr_Level1KernelInterrupt
+                        rfi 1
+
+        Level1UserInterruptVectorHandler:
+                        call_isr Isr_Level1UserInterrupt
+                        rfi 1
+
+.size _vector_handlers, .-_vector_handlers
 
 /*******************************************************************************************
   \brief  
@@ -235,9 +292,9 @@ Register   |  Use                            | Preserver
 --------------------------------------------------------------
 a0         |  Return Address                 |  caller-saved
 a1 (sp)    |  Stack Pointer                  |  callee-saved
-a2 – a7    |  Function Arguments             |
+a2 – a7    |  Function Arguments             |  caller-saved
 a8 – a11   |  Temporary                      |  caller-saved
-a12 – a15  |                                 |  callee-saved
-a15        |  Stack-Frame Pointer (optional) |
+a12 – a14  |                                 |  callee-saved
+a15        |  Stack-Frame Pointer (optional) |  callee-saved
 
 */
