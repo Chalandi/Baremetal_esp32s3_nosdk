@@ -35,7 +35,7 @@
 #define yl a4
 #endif
 
-#ifdef I_KNOW_WHAT_I_AM_DOING  /* added by Chalandi for CALL0 adaptation */
+#ifdef __XTENSA_CALL0_ABI__ /* added by Chalandi for CALL0 adaptation */
 
 .macro leaf_entry _sp, _frame_size
        
@@ -45,7 +45,7 @@
   ret
 .endm
 
-#endif
+#endif /*__XTENSA_CALL0_ABI__*/
 
 /*  Warning!  The branch displacements for some Xtensa branch instructions
     are quite small, and this code has been carefully laid out to keep
