@@ -43,7 +43,10 @@ ARCH               =  -mabi=call0                   \
                       -fno-tree-switch-conversion   \
                       -fno-stack-protector
 
-DEFS               = -DI_KNOW_WHAT_I_AM_DOING
+DEFS_IEEE754_SF = -DL_divsf3 -DXCHAL_HAVE_FP_DIV
+
+DEFS               = -DI_KNOW_WHAT_I_AM_DOING \
+                     $(DEFS_IEEE754_SF)
 
 
 AS      = $(TOOLCHAIN)-gcc
@@ -206,6 +209,7 @@ SRC_FILES := $(SRC_DIR)/Appli/main.c            \
              $(SRC_DIR)/Startup/Startup.c       \
              $(SRC_DIR)/Startup/IntHandler.c    \
              $(SRC_DIR)/Startup/boot.s          \
+             $(SRC_DIR)/Startup/ieee754-sf.S    \
              $(SRC_DIR)/Startup/IntVectTable.s  \
              $(SRC_DIR)/Mcal/Mcu.c              \
              $(SRC_DIR)/Std/StdLib.c
@@ -305,6 +309,11 @@ CLEAN :
 $(OBJ_DIR)/%.o : %.c
 	@-echo +++ compile: $(subst \,/,$<) to $(subst \,/,$@)
 	@-$(CC) $(COPS) $(addprefix -I, $(INC_FILES)) -c $< -o $(OBJ_DIR)/$(basename $(@F)).o 2> $(OBJ_DIR)/$(basename $(@F)).err
+	@-$(PYTHON) $(ERR_MSG_FORMATER_SCRIPT) $(OBJ_DIR)/$(basename $(@F)).err -COLOR
+
+$(OBJ_DIR)/%.o : %.S
+	@-echo +++ compile: $(subst \,/,$<) to $(subst \,/,$@)
+	@-$(CC) $(OPT) $(ARCH) $(DEFS) $(addprefix -I, $(INC_FILES)) -c $< -o $(OBJ_DIR)/$(basename $(@F)).o 2> $(OBJ_DIR)/$(basename $(@F)).err
 	@-$(PYTHON) $(ERR_MSG_FORMATER_SCRIPT) $(OBJ_DIR)/$(basename $(@F)).err -COLOR
 
 ifeq ($(AS), $(TOOLCHAIN)-as)

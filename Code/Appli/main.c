@@ -68,6 +68,7 @@ extern uint32_t get_core_id(void);
 extern void enable_irq(uint32_t mask);
 extern void set_cpu_private_timer(uint32_t timer_id, uint32_t ticks);
 extern void Mcu_StartCoProcessorRiscV(void);
+
 //=============================================================================
 // Globals
 //=============================================================================
@@ -75,7 +76,7 @@ volatile uint64_t SysTickTimer1usBase = 0;
 volatile uint64_t SysTickTimer1msBase = 0;
 
 //-----------------------------------------------------------------------------------------
-/// \brief  main function
+/// \brief  main function for core 0
 ///
 /// \param  void
 ///
@@ -109,7 +110,7 @@ void main(void)
 }
 
 //-----------------------------------------------------------------------------------------
-/// \brief  main function
+/// \brief  main function for core1
 ///
 /// \param  void
 ///
