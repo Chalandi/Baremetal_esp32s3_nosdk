@@ -14,7 +14,8 @@ Features :
   - LED blinking from both cores
   - WS2812 switching color from core 1 interrupt
   - Multicore Debug environment configuration for VSCode (using the built-in JTAG interface, GDB and OpenOCD)
-
+  - Using the right IEEE754 single-precision FPU library (libgcc from the toolchain xtensa-esp32s3-elf uses emulation for DIV, SQRT ...)
+  - Using CALL0 ABI
 
 A clear and easy-to-understand implementation in C11 and assembly with a build system based on GNU Make makes this project both fun and educational.
 
@@ -30,9 +31,17 @@ The low-level startup process begins on core 0, initializing the C/C++ environme
 
 Both cores then enable interrupts and enter an idle loop. Each core toggles an LED at a 1 Hz frequency using its private timer interrupt.
 
+## Including the Co-Processor image in the final binary
+
+To include the coprocessor (ULP-RISC-V) image in the final binary, define the following variable in the Makefile:
+
+```sh
+COPROCESSOR = RISC-V
+```
+
 ## Building the Application
 
-To build the project, you need an installed Xtensa GCC compiler (xtensa-esp32s3-elf).
+To build the project, you need an installed Xtensa GCC compiler (xtensa-esp32s3-elf) and a RISC-V GCC compiler (if the coprocessor image is included in the final binary).
 
 Run the following commands :
 
