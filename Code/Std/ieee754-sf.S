@@ -23,6 +23,8 @@
    see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
    <http://www.gnu.org/licenses/>.  */
 
+#include "core-isa.h" /* added by Chalandi for core configuration defines */
+
 #ifdef __XTENSA_EB__
 #define xh a2
 #define xl a3

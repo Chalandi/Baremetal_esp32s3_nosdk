@@ -43,7 +43,7 @@ ARCH               =  -mabi=call0                   \
                       -fno-tree-switch-conversion   \
                       -fno-stack-protector
 
-DEFS_IEEE754_SF = -DL_divsf3 -DXCHAL_HAVE_FP_DIV
+DEFS_IEEE754_SF = -DL_divsf3
 
 DEFS               = -DI_KNOW_WHAT_I_AM_DOING \
                      $(DEFS_IEEE754_SF)
