@@ -209,7 +209,7 @@ SRC_FILES := $(SRC_DIR)/Appli/main.c            \
              $(SRC_DIR)/Startup/Startup.c       \
              $(SRC_DIR)/Startup/IntHandler.c    \
              $(SRC_DIR)/Startup/boot.s          \
-             $(SRC_DIR)/Startup/ieee754-sf.S    \
+             $(SRC_DIR)/Std/ieee754-sf.S        \
              $(SRC_DIR)/Startup/IntVectTable.s  \
              $(SRC_DIR)/Mcal/Mcu.c              \
              $(SRC_DIR)/Std/StdLib.c
@@ -225,6 +225,14 @@ INC_FILES := $(SRC_DIR)                             \
              $(SRC_DIR)/Startup                     \
              $(SRC_DIR)/Std
 
+############################################################################################
+# External Libaries for CALL0 ABI
+############################################################################################
+EXTERNAL_LIB := -L$(SRC_DIR)/Std/lib_call0_abi  \
+                -l:libgcc_call0_abi.a           \
+                -l:libc_call0_abi.a             \
+                -l:libg_call0_abi.a             \
+                -l:libm_call0_abi.a
 
 ############################################################################################
 # Coprocessor build
@@ -336,9 +344,9 @@ $(OBJ_DIR)/%.o : %.cpp
 $(OUTPUT_DIR)/$(PRJ_NAME).elf : $(FILES_O) $(LD_SCRIPT)
 	@-echo +++ link: $(subst \,/,$@)
 ifeq ($(FORMAT_LINKER_ERR), )
-	@$(LD) $(LOPS) $(FILES_O) -o $(OUTPUT_DIR)/$(PRJ_NAME).elf
+	@$(LD) $(LOPS) $(FILES_O) $(EXTERNAL_LIB) -o $(OUTPUT_DIR)/$(PRJ_NAME).elf
 else
-	@$(LD) $(LOPS) $(FILES_O) -o $(OUTPUT_DIR)/$(PRJ_NAME).elf 2> $(OBJ_DIR)/linker.err || true
+	@$(LD) $(LOPS) $(FILES_O) $(EXTERNAL_LIB) -o $(OUTPUT_DIR)/$(PRJ_NAME).elf 2> $(OBJ_DIR)/linker.err || true
 	@-$(PYTHON) $(LINKER_ERR_MSG_FORMATER_SCRIPT) $(OBJ_DIR)/linker.err
 endif
 
