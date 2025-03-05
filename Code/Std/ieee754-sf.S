@@ -23,7 +23,6 @@
    see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include "core-isa.h" /* added by Chalandi for core configuration defines */
 
 #ifdef __XTENSA_EB__
 #define xh a2
@@ -36,18 +35,6 @@
 #define yh a5
 #define yl a4
 #endif
-
-#ifdef __XTENSA_CALL0_ABI__ /* added by Chalandi for CALL0 adaptation */
-
-.macro leaf_entry _sp, _frame_size
-       
-.endm
-
-.macro leaf_return
-  ret
-.endm
-
-#endif /*__XTENSA_CALL0_ABI__*/
 
 /*  Warning!  The branch displacements for some Xtensa branch instructions
     are quite small, and this code has been carefully laid out to keep

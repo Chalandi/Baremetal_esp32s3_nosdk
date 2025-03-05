@@ -43,7 +43,7 @@ ARCH               =  -mabi=call0                   \
                       -fno-tree-switch-conversion   \
                       -fno-stack-protector
 
-DEFS_IEEE754_SF = -DL_divsf3
+DEFS_IEEE754_SF = -DL_divsf3 -DL_mulsf3
 
 DEFS               = -DI_KNOW_WHAT_I_AM_DOING \
                      $(DEFS_IEEE754_SF)
@@ -209,7 +209,7 @@ SRC_FILES := $(SRC_DIR)/Appli/main.c            \
              $(SRC_DIR)/Startup/Startup.c       \
              $(SRC_DIR)/Startup/IntHandler.c    \
              $(SRC_DIR)/Startup/boot.s          \
-             $(SRC_DIR)/Std/ieee754-sf.S        \
+             $(SRC_DIR)/Std/lib1funcs.S         \
              $(SRC_DIR)/Startup/IntVectTable.s  \
              $(SRC_DIR)/Mcal/Mcu.c              \
              $(SRC_DIR)/Std/StdLib.c
