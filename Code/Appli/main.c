@@ -20,6 +20,7 @@
 //=============================================================================
 #include "Platform_Types.h"
 #include "esp32s3.h"
+#include "printf.h"
 
 //=============================================================================
 // Defines
@@ -84,6 +85,8 @@ volatile uint64_t SysTickTimer1msBase = 0;
 //-----------------------------------------------------------------------------------------
 void main(void)
 {
+  printf("Hello from core %d\r\n", get_core_id());
+
   GPIO->OUT.reg |= CORE0_LED;
 
   /* enable timers interrupt on core 0 */
@@ -118,6 +121,8 @@ void main(void)
 //-----------------------------------------------------------------------------------------
 void main_c1(void)
 {
+  printf("Hello from core %d\r\n", get_core_id());
+
   GPIO->OUT.reg |= CORE1_LED;
 
   /* enable timer1 interrupt on core 1 */

@@ -45,7 +45,8 @@ ARCH               =  -mabi=call0                   \
 
 DEFS_IEEE754_SF = -DL_divsf3 -DL_mulsf3
 
-DEFS               = -DI_KNOW_WHAT_I_AM_DOING \
+DEFS               = -DI_KNOW_WHAT_I_AM_DOING  \
+                     -DPRINTF_INCLUDE_CONFIG_H \
                      $(DEFS_IEEE754_SF)
 
 
@@ -212,6 +213,7 @@ SRC_FILES := $(SRC_DIR)/Appli/main.c            \
              $(SRC_DIR)/Std/lib1funcs.S         \
              $(SRC_DIR)/Startup/IntVectTable.s  \
              $(SRC_DIR)/Mcal/Mcu.c              \
+             $(SRC_DIR)/Std/printf/printf.c     \
              $(SRC_DIR)/Std/StdLib.c
 
 
@@ -223,7 +225,8 @@ INC_FILES := $(SRC_DIR)                             \
              $(SRC_DIR)/Appli                       \
              $(SRC_DIR)/Mcal                        \
              $(SRC_DIR)/Startup                     \
-             $(SRC_DIR)/Std
+             $(SRC_DIR)/Std                         \
+             $(SRC_DIR)/Std/printf
 
 ############################################################################################
 # External Libaries for CALL0 ABI
