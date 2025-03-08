@@ -19,7 +19,14 @@
           "text": "-enable-pretty-printing",
           "ignoreFailures": true
         }
-      ]
+      ],
+      "postRemoteConnectCommands": [
+        {
+          "description": "GDB initialization file",
+          "text": "source Debug/.gdbinit"
+        }
+    ],      
+      "miDebuggerArgs": ""
     }
   ]
 }
