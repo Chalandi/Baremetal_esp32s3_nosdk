@@ -1,1 +1,0 @@
-pyinstaller --onefile --name OsConfigGenTool_windows --icon=chip.ico ..\MyOilGen.py

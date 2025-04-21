@@ -14,7 +14,7 @@
 //
 // Oil file        : D:/Git_Repo/Baremetal_esp32s3_nosdk/Build/../Code/Appli/osek_xtensa_lx7.oil
 //
-// Generation Time : 22.04.2025 00:52:23
+// Generation Time : 22.04.2025 01:49:39
 //
 // Description     : Auto-generated OS Configuration file
 //
@@ -462,7 +462,7 @@ static const OsSpinlockConfigType* OsSpinlocksConfig[2] = {
 /********************************************************************************************************************/
 /* Interrupt LUT (Core0) */
 /********************************************************************************************************************/
-const OsIntIsrLtType OsIsrLookupTable_core0[] = {
+const OsIntIsrLtType OsIsrLookupTable_core0[99] = {
     {pISR(Undefined), (uint8)0, (OsInterruptNestingType)NOT_NESTED, 2},  /* Interrupt vector 0 */
     {pISR(Undefined), (uint8)0, (OsInterruptNestingType)NOT_NESTED, 2},  /* Interrupt vector 1 */
     {pISR(Undefined), (uint8)0, (OsInterruptNestingType)NOT_NESTED, 2},  /* Interrupt vector 2 */
@@ -583,7 +583,7 @@ OsInterruptConfigType OsInterruptsConfig_core0 = {
 /********************************************************************************************************************/
 /* Interrupt LUT (Core1) */
 /********************************************************************************************************************/
-const OsIntIsrLtType OsIsrLookupTable_core1[] = {
+const OsIntIsrLtType OsIsrLookupTable_core1[99] = {
     {pISR(Undefined), (uint8)0, (OsInterruptNestingType)NOT_NESTED, 2},  /* Interrupt vector 0 */
     {pISR(Undefined), (uint8)0, (OsInterruptNestingType)NOT_NESTED, 2},  /* Interrupt vector 1 */
     {pISR(Undefined), (uint8)0, (OsInterruptNestingType)NOT_NESTED, 2},  /* Interrupt vector 2 */

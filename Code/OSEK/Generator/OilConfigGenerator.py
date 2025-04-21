@@ -57,23 +57,17 @@ class Color:
     UNDERLINE = '\033[4m'
     RESET     = '\033[0m'
 
-# Globals
-PrioritiesList = []
-
 # Command-line syntax :  py  <ThisPythonScriptName>  -h
 
 # Get command-line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", dest="oil_file", help="Input OSEK OIL file")
-parser.add_argument("-gen", dest="gen_folder", help="Generate OSEK TCB data")
-parser.add_argument("-info", dest="info", action="store_true", help="Display OSEK OS objects info")
-parser.add_argument("-process", dest="process", action="store_true", help="process OSEK OS objects")
+parser.add_argument("-gen", dest="gen_folder", help="Output folder to generate OSEK TCB data")
 parser.add_argument("-template", dest="template_oil_file", help="Create an OSEK OIL template file")
-parser.add_argument("-html", dest="html_file", help="Generate HTML report file")
 args = parser.parse_args()
 
 # Check args
-if (args.oil_file == None) and (args.template_oil_file == None) and (args.html_file == None):
+if (args.oil_file == None) and (args.template_oil_file == None):
     parser.print_usage()
     quit()
 
@@ -81,6 +75,15 @@ if (args.oil_file == None) and (args.template_oil_file == None) and (args.html_f
 if (args.oil_file!= None) and (os.path.exists(args.oil_file) == False):
     print(f"The input file \"{args.oil_file}\" does not exist !")
     sys.exit(0)
+
+# Check if the output folder
+gen_folder = os.path.abspath(args.gen_folder)
+if (args.gen_folder!= None) and (os.path.exists(gen_folder) == False):
+    try:
+        os.makedirs(gen_folder, exist_ok=True)
+    except Exception as e:
+        print(f"Failed to create folder \"{gen_folder}\": {e}")
+        sys.exit(1)
 
 # Get the OIL file content
 if (args.oil_file != None):
@@ -113,7 +116,7 @@ if (args.oil_file != None):
     OilInterrupts.OilInterruptsParser(args, OilFileContent)
 
 # Generate TCB:
-if ((args.gen_folder != None) or (args.process)):
+if (args.gen_folder != None):
     ##################################################################################################
     # Process the event's mask
     ##################################################################################################
@@ -299,8 +302,9 @@ if ((args.gen_folder != None) or (args.process)):
         else:
             OilInterrupts.InterruptCat1LowestPrio[CoreIdx].append(IntCat1LowPrio)
 
-# Code Generation
-if (args.gen_folder != None):
+    ##################################################################################################
+    # Code Generation
+    ##################################################################################################
     OilTcbGen.OsConfigTcbGeneration(args,
                                       OilOs,
                                       OilTasks,
@@ -315,150 +319,6 @@ if (args.gen_folder != None):
 if args.template_oil_file:
     OilGenTemplate.OilGenTemplate(args)
 
-# Display task info
-if args.info:
-    # Display OS info
-    print("\nOS:\n"+tabulate(OilOs.OsList, headers=["Name", "Properties"], tablefmt='fancy_grid'))
-    print("Tasks:\n"+tabulate(OilTasks.OsTasksList, headers=["Task", "Type", "Schedule", "Priority", "Activation", "Autostart", "Stack size", "Wait events mask"], tablefmt='fancy_grid'))
-    print(f"Total number of tasks: {OilTasks.OsTaskTotalNumber}")
-    print("\nTask's events: ")
-    print(tabulate(OilTasks.OsTaskEventL, headers=["Task", "Events"], tablefmt='fancy_grid'))
-    print("\nTask's resources: ")
-    print(tabulate(OilTasks.OsTaskResourceL, headers=["Task", "Resources"], tablefmt='fancy_grid'))
-
-    # Display event info
-    print("\nEvents:\n"+tabulate(OilEvents.EventsList, headers=["EVENT", "MASK"], tablefmt='fancy_grid'))
-    print(f"Total number of events: {OilEvents.EventsTotalNumber}")
-
-    # Display resources info
-    print("\nResources:\n"+tabulate(OilResources.ResourcesList, headers=["Resource", "Priority ceiling", "Property", "Mask"], tablefmt='fancy_grid'))
-    print(f"Total number of resources: {OilResources.ResourcesTotalNumber}")
-
-    # Display priority scheme
-    if ((args.gen_folder != None) or (args.process)):
-        for CoreIdx in range(OilOs.OsCoresTotalNumber):
-            print(f"\nPriority Scheme (core{CoreIdx}):\n"+tabulate(OilResources.PrioritiesList_per_core[CoreIdx], headers=["Name", "Priority"], tablefmt='fancy_grid'))
-            print(f"Total levels of priority: {len(OilResources.PrioritiesList_per_core[CoreIdx])}")
-
-    # Display alarms info
-    print("\nAlarms:\n"+tabulate(OilAlarms.AlarmsList, headers=["Name", "Alarmtime", "Cycletime", "Event", "Task", "Action", "Autostart", "Callback"], tablefmt='fancy_grid'))
-    print(f"Total number of alarms: {OilAlarms.AlarmsTotalNumber}")
-
-    # Display interrupts info
-    print("\nInterrupts:\n"+tabulate(OilInterrupts.InterruptsList, headers=["Name", "Category", "Vector", "Prio", "Nesting"], tablefmt='fancy_grid'))
-    print(f"Total number of used interrupts: {OilInterrupts.InterruptsTotalNumber}")
-    print(f"Total number of CPU interrupts : {OilOs.OsMaxVectorEntries}")
-
-
-# Generate HTML report
-if args.html_file:
-    # generate the HTML code for the table
-    html_os_table             = tabulate(OilOs.OsList, headers=["Name", "Properties"], tablefmt='html')
-    html_tasks_table          = tabulate(OilTasks.OsTasksList, headers=["Task", "Type", "Schedule", "Priority", "Activation", "Autostart", "Stack size", "Wait events mask"], tablefmt='html')
-    html_task_events_table    = tabulate(OilTasks.OsTaskEventL, headers=["Task", "Events"], tablefmt='html')
-    html_task_resources_table = tabulate(OilTasks.OsTaskResourceL, headers=["Task", "Resources"], tablefmt='html')
-    html_events_table         = tabulate(OilEvents.EventsList, headers=["EVENT", "MASK"], tablefmt='html')
-    html_resources_table      = tabulate(OilResources.ResourcesList, headers=["Resource", "Priority ceiling", "Property", "Mask"], tablefmt='html')
-    html_alarms_table         = tabulate(OilAlarms.AlarmsList, headers=["Name", "Alarmtime", "Cycletime", "Event", "Task", "Action", "Autostart", "Callback"], tablefmt='html')
-    html_interrupts_table     = tabulate(OilInterrupts.InterruptsList, headers=["Name", "Category", "Vector", "Prio", "Nesting"], tablefmt='html')
-    # Display priority scheme
-    if ((args.gen_folder != None) or (args.process)):
-        html_priority_scheme_section = "<p style=\"font-size: 24px;\">Priority Scheme:</p>"
-        html_priority_scheme_table   = tabulate(PrioritiesList, headers=["Name", "Priority"], tablefmt='html')
-        html_priority_scheme_title   = f" <b> Total levels of priority: {len(PrioritiesList)} </b>"
-    else:
-        html_priority_scheme_section = ""
-        html_priority_scheme_table   = ""
-        html_priority_scheme_title   = ""
-
-    # Define the template for the HTML page
-    template = Template("""<!DOCTYPE html>
-    <html>
-        <head>
-        <title>OSEK OS Configuration</title>
-        <h1 style="color:black;">OSEK OS OBJECTS SUMMARY</h1>
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/png" href="chip2.png">
-        <style>
-            body {
-               margin: 60px;
-            }
-            table {
-            width: 50%;
-            border-collapse: collapse;
-            border-style: solid;
-            border-width: 2px;
-            border-color: black;
-            margin-bottom: 30px;
-            }
-            th{
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-            background-color: #4f97d1;
-            }
-            td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-            }
-            tr:nth-child(even) {
-            background-color: #d2e8fa;
-            }
-        </style>
-        </head>
-        <body style="font-family:calibri;background-color:white;">
-        <p style="font-size: 24px;">OS Objects:</p>
-        {{ table1 }}
-        <p style="font-size: 24px;">Task Objects:</p>
-        {{ table2 }}
-        <b> {{str2}} </b>
-        <p style="font-size: 24px;">Task's event Objects:</p>
-        {{ table3 }}
-        <p style="font-size: 24px;">Task' resource Objects:</p>
-        {{ table4 }}
-        <p style="font-size: 24px;">Event Objects:</p>
-        {{ table5 }}
-        <b> {{str3}} </b>
-        <p style="font-size: 24px;">Resource Objects:</p>
-        {{ table6 }}
-        <b> {{str4}} </b>
-        {{ priority_scheme_section }}
-        {{ priority_scheme_table   }}
-        {{ priority_scheme_title   }}
-        <p style="font-size: 24px;">Alarm Objects:</p>
-        {{ table7 }}
-        <b> {{str5}} </b>
-        <p style="font-size: 24px;">Interrupt Objects:</p>
-        {{ table8 }}
-        <b> {{str6}} </b>
-        </body>
-    </html>
-    """)
-        
-    # Substitute the table data into the template to produce the final HTML
-    html = template.render(table1=html_os_table,
-                           table2=html_tasks_table,
-                           str2=f"Total number of tasks: {OilTasks.OsTaskTotalNumber}",
-                           table3=html_task_events_table,
-                           table4=html_task_resources_table,
-                           table5=html_events_table,
-                           str3=f"Total number of events: {OilEvents.EventsTotalNumber}",
-                           table6=html_resources_table,
-                           str4=f"Total number of resources: {OilResources.ResourcesTotalNumber}",
-                           table7=html_alarms_table,
-                           str5=f"Total number of alarms: {OilAlarms.AlarmsTotalNumber}",
-                           table8=html_interrupts_table,
-                           str6=f"Total number of used interrupts: {OilInterrupts.InterruptsTotalNumber} and Total number of CPU interrupts : {OilOs.OsMaxVectorEntries}",
-                           priority_scheme_section = html_priority_scheme_section,
-                           priority_scheme_table   = html_priority_scheme_table,
-                           priority_scheme_title   = html_priority_scheme_title
-                           )
-        
-    # Generate HTML report
-    HtmlReportFile = open(args.html_file, 'w', encoding='utf-8')
-    HtmlReportFile.write(html)
-    HtmlReportFile.close()
 
 # Close the oil file
 if (args.oil_file!= None):

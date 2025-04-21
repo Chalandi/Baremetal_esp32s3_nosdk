@@ -42,7 +42,7 @@ CUSTOM_POST_BUILD_TARGET = OS_SIZE_INFO
 OS_TCB_GEN:
 	@echo +++ Generate OS Configuration
 	@$(if $(shell test -d $(OS_TCB_GEN_FOLDER) && echo yes),,mkdir -p $(subst \,/,$(OS_TCB_GEN_FOLDER)))
-	@$(PYTHON) $(OS_TCB_GEN_TOOL) -i $(OS_OIL_FILE) -process -gen $(OS_TCB_GEN_FOLDER)
+	@$(PYTHON) $(OS_TCB_GEN_TOOL) -i $(OS_OIL_FILE) -gen $(OS_TCB_GEN_FOLDER)
 
 
 

@@ -308,7 +308,7 @@ def OsConfigTcbGeneration(args, OilOs,
         OsGenTcbSourceFile.write("/********************************************************************************************************************/\n")
         OsGenTcbSourceFile.write(f"/* Interrupt LUT (Core{CoreIdx}) */\n")
         OsGenTcbSourceFile.write("/********************************************************************************************************************/\n")
-        OsGenTcbSourceFile.write(f"const OsIntIsrLtType OsIsrLookupTable_core{CoreIdx}[] = {{\n")
+        OsGenTcbSourceFile.write(f"const OsIntIsrLtType OsIsrLookupTable_core{CoreIdx}[{OilOs.OsMaxVectorEntries}] = {{\n")
         for vector in range(int(OilOs.OsMaxVectorEntries)):
             isVectorExist = False
             VectorDataIdx = 0
@@ -558,7 +558,7 @@ def OsConfigTcbGeneration(args, OilOs,
     OsGenTcbHeaderFile.write(f"#define OS_NUMBER_OF_CORES    {OilOs.OsCoresTotalNumber}UL\n\n")
 
     for core_idx in range(OilOs.OsCoresTotalNumber):
-        OsGenTcbHeaderFile.write(f"extern const OsIntIsrLtType OsIsrLookupTable_core{core_idx}[];\n")
+        OsGenTcbHeaderFile.write(f"extern const OsIntIsrLtType OsIsrLookupTable_core{core_idx}[{OilOs.OsMaxVectorEntries}];\n")
 
     OsGenTcbHeaderFile.write(f"extern const osObjectCoreAsgn_t osTaskCoreAsgnLookupTable[{OilTasks.OsTaskTotalNumber}];\n")
     OsGenTcbHeaderFile.write(f"extern const osObjectCoreAsgn_t osAlarmCoreAsgnLookupTable[{OilAlarms.AlarmsTotalNumber}];\n")

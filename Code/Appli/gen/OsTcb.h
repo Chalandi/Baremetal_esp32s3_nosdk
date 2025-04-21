@@ -14,7 +14,7 @@
 //
 // Oil file        : D:/Git_Repo/Baremetal_esp32s3_nosdk/Build/../Code/Appli/osek_xtensa_lx7.oil
 //
-// Generation Time : 22.04.2025 00:52:23
+// Generation Time : 22.04.2025 01:49:39
 //
 // Description     : Auto-generated OS Configuration file
 //
@@ -105,8 +105,8 @@ void osErrorHook_core1(OsStatusType error);
 
 #define OS_NUMBER_OF_CORES    2UL
 
-extern const OsIntIsrLtType OsIsrLookupTable_core0[];
-extern const OsIntIsrLtType OsIsrLookupTable_core1[];
+extern const OsIntIsrLtType OsIsrLookupTable_core0[99];
+extern const OsIntIsrLtType OsIsrLookupTable_core1[99];
 extern const osObjectCoreAsgn_t osTaskCoreAsgnLookupTable[4];
 extern const osObjectCoreAsgn_t osAlarmCoreAsgnLookupTable[4];
 extern const osObjectCoreAsgn_t osResourceCoreAsgnLookupTable[3];
