@@ -59,8 +59,13 @@ void Isr_Level1KernelInterrupt(uint32_t irq)
 ********************************************************************************************/
 void Isr_Level1UserInterrupt(uint32_t irq)
 {
+#ifndef OSEK
   if(irq & (1ul << 6))
     systicktimer_1us_base();
+#else
+  (void)irq;
+  for(;;);
+#endif
 }
 
 /*******************************************************************************************
@@ -85,8 +90,13 @@ void Isr_Level2Interrupt(uint32_t irq)
 ********************************************************************************************/
 void Isr_Level3Interrupt(uint32_t irq)
 {
+#ifndef OSEK
   if(irq & (1ul << 15))
     blink_led();
+#else
+  (void)irq;
+  for(;;);
+#endif
 }
 
 /*******************************************************************************************
@@ -111,6 +121,11 @@ void Isr_Level4Interrupt(uint32_t irq)
 ********************************************************************************************/
 void Isr_Level5Interrupt(uint32_t irq)
 {
+#ifndef OSEK
   if(irq & (1ul << 16))
     systicktimer_1ms_base();
+#else
+  (void)irq;
+  for(;;);
+#endif
 }

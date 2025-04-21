@@ -20,7 +20,8 @@ OBJ_DIR     = $(OUTPUT_DIR)/obj
 LD_SCRIPT   = $(SRC_DIR)/Memory_Map.ld
 SRC_DIR     = $(CURDIR)/../Code
 COPROCESSOR = #RISC-V
-RTOS        = 
+RTOS        = osek
+CORE_FAMILY = Xtensa
 PYTHON      = python
 ESPTOOL     = esptool
 ERR_MSG_FORMATER_SCRIPT = $(CURDIR)/../Tools/scripts/CompilerErrorFormater.py
@@ -251,8 +252,13 @@ endif
 # RTOS Files
 ############################################################################################
 ifeq ($(RTOS),osek)
+ OS_OIL_FILE = $(SRC_DIR)/Appli/osek_xtensa_lx7.oil
+ OS_TCB_GEN_FOLDER = $(SRC_DIR)/Appli/gen
  include $(SRC_DIR)/OSEK/Os.makefile
  SRC_FILES += $(SRC_DIR)/Appli/tasks.c
+ SRC_FILES += $(OS_TCB_GEN_FOLDER)/OsTcb.c
+ INC_FILES += $(OS_TCB_GEN_FOLDER)
+ DEFS      += -DOSEK
 endif
 
 ############################################################################################
@@ -266,13 +272,13 @@ ifeq ($(MAKECMDGOALS), BUILD_STAGE_2)
 -include $(subst .o,.d,$(FILES_O))
 endif
 
-REBUILD_STAGE_1 : CLEAN PRE_BUILD
+REBUILD_STAGE_1 : CLEAN PRE_BUILD $(CUSTOM_PRE_BUILD_TARGET)
 REBUILD_STAGE_2 : link
-REBUILD_STAGE_3 : GENERATE POST_BUILD
+REBUILD_STAGE_3 : GENERATE POST_BUILD OS_SIZE_INFO
 
-BUILD_STAGE_1   : PRE_BUILD
+BUILD_STAGE_1   : PRE_BUILD OS_TCB_GEN
 BUILD_STAGE_2   : link
-BUILD_STAGE_3   : GENERATE POST_BUILD
+BUILD_STAGE_3   : GENERATE POST_BUILD $(CUSTOM_POST_BUILD_TARGET)
 
 ############################################################################################
 # Recipes
@@ -298,6 +304,7 @@ endif
 	@echo +++ info: "$(shell $(PYTHON) --version 2>&1 | head -n 1)"
 	@echo +++ info: "$(shell $(ESPTOOL) version 2>&1 | head -n 1)"
 	@$(if $(shell test -d $(OBJ_DIR) && echo yes),,mkdir -p $(subst \,/,$(OBJ_DIR)))
+
 
 .PHONY : POST_BUILD
 POST_BUILD:
@@ -335,7 +342,7 @@ $(OBJ_DIR)/%.o : %.s
 else
 $(OBJ_DIR)/%.o : %.s
 	@-echo +++ compile: $(subst \,/,$<) to $(subst \,/,$@)
-	@-$(AS) $(ASOPS) $(addprefix -I, $(INC_FILES)) -c $< -o $(OBJ_DIR)/$(basename $(@F)).o 2> $(OBJ_DIR)/$(basename $(@F)).err
+	@-$(CC) $(OPT) $(ARCH) $(DEFS) $(addprefix -I, $(INC_FILES)) -c $< -o $(OBJ_DIR)/$(basename $(@F)).o 2> $(OBJ_DIR)/$(basename $(@F)).err
 	@-$(PYTHON) $(ERR_MSG_FORMATER_SCRIPT) $(OBJ_DIR)/$(basename $(@F)).err -COLOR
 endif
 
@@ -369,10 +376,5 @@ GENERATE:
 #	@$(ESPTOOL) image_info --version 2 $(OUTPUT_DIR)/$(PRJ_NAME).bin
 #	@$(ESPTOOL) --chip esp32s3 erase_flash 
 	@-echo +++ flash: Flashing the binary to the QSPI Flash Memory ...
-	@$(ESPTOOL) --chip esp32s3 write_flash --flash_mode dio --flash_freq 80m --flash_size 2MB  0 $(OUTPUT_DIR)/$(PRJ_NAME).bin  >/dev/null
+	@$(ESPTOOL) --chip esp32s3 write_flash --flash_mode dio --flash_freq 80m --flash_size 2MB  0 $(OUTPUT_DIR)/$(PRJ_NAME).bin  >/dev/null || { echo "+++ flashing failed !";}
 
-ifneq ($(OS_SIZE_SCRIPT), )
-	@-echo  
-	@$(PYTHON) $(OS_SIZE_SCRIPT) $(OUTPUT_DIR)/$(PRJ_NAME).map --sections .text .data .bss
-	@-echo  
-endif

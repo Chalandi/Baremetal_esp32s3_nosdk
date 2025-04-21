@@ -1,0 +1,143 @@
+// OIL-Definition-File
+OIL_VERSION = "2.3";
+
+CPU RP2350 {
+
+   OS SysconOS {
+      STARTUPHOOK = TRUE;
+      ERRORHOOK = TRUE;
+      SHUTDOWNHOOK = TRUE;
+      PRETASKHOOK = TRUE;
+      POSTTASKHOOK = TRUE;
+      WithStackCheck = TRUE;
+      CpuFrequency = 16.000000;
+      MaximumVectorEntries = 113;
+      TickTime = 1000;
+
+      CPU_CORE  RP2350_0
+      {
+          CORE_PHYSICAL_ID = 0;
+          VENDOR = "RPI";
+          CORE_TYPE = "CORTEX_M33";
+      };
+
+   };
+
+   TASK OSTASK_TASK01 {
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 2;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = OSEVT_EVENT01;
+      EVENT = OSEVT_EVENT02;
+      EVENT = OSEVT_EVENT03;
+      RESOURCE = OSRES_RESOURCE01;
+      RESOURCE = OSRES_RESOURCE02;
+      StackSize = 0x800;
+   };
+   
+   TASK OSTASK_TASK02 {
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 5;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = OSEVT_EVENT03;
+      EVENT = OSEVT_EVENT02;
+      EVENT = OSEVT_EVENT01;
+      RESOURCE = OSRES_RESOURCE02;
+      RESOURCE = OSRES_RESOURCE01;
+      StackSize = 800;
+   };
+
+   TASK OSTASK_TASK03 {
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 15;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = OSEVT_EVENT03;
+      EVENT = OSEVT_EVENT01;
+      RESOURCE = OSRES_RESOURCE01;
+      StackSize = 800;
+   };
+
+   ALARM OSALARM_ALARM01 {
+      ACTION = SETEVENT
+      {
+         TASK = OSTASK_TASK01;
+         EVENT = OSEVT_EVENT01;
+      };
+      AUTOSTART = FALSE;
+   };
+
+   ALARM OSALARM_ALARM02 {
+      ACTION = ACTIVATETASK
+      {
+         TASK = OSTASK_TASK02;
+      };
+      AUTOSTART = FALSE;
+   };
+
+   ALARM OSALARM_ALARM03 {
+      ACTION = ALARMCALLBACK
+      {
+         ALARMCALLBACKNAME = "OsTickTimerCallback";
+      };
+      AUTOSTART = TRUE
+      {
+         ALARMTIME = 0;
+         CYCLETIME = 5;
+      };
+   };
+
+   EVENT OSEVT_EVENT01 {
+      MASK = AUTO;
+   };
+
+   EVENT OSEVT_EVENT02 {
+      MASK = AUTO;
+   };
+
+   EVENT OSEVT_EVENT03 {
+      MASK = AUTO;
+   };
+
+   RESOURCE OSRES_RESOURCE01 {
+      RESOURCEPROPERTY = STANDARD;
+   };
+
+   RESOURCE OSRES_RESOURCE02 {
+      RESOURCEPROPERTY = STANDARD;
+   };
+
+   ISR ISR_000 {
+      CATEGORY = 2;
+      VectorAddress = 0;
+      Nesting = FALSE;
+      Priority = 7;
+   };
+
+   ISR ISR_001 {
+      CATEGORY = 2;
+      VectorAddress = 1;
+      Nesting = FALSE;
+      Priority = 6;
+   };
+
+   ISR ISR_010 {
+      CATEGORY = 1;
+      VectorAddress = 10;
+      Nesting = FALSE;
+      Priority = 12;
+   };
+
+   ISR ISR_011 {
+      CATEGORY = 1;
+      VectorAddress = 11;
+      Nesting = FALSE;
+      Priority = 16;
+   };
+
+};

@@ -1,0 +1,180 @@
+// OIL-Definition-File
+OIL_VERSION = "2.3";
+
+CPU RP2350 {
+
+   OS MyOSEK {
+      MULTICORE = TRUE;
+      STARTUPHOOK = TRUE;
+      ERRORHOOK = TRUE;
+      SHUTDOWNHOOK = TRUE;
+      PRETASKHOOK = TRUE;
+      POSTTASKHOOK = TRUE;
+      WithStackCheck = TRUE;
+      CpuFrequency = 16.000000;
+      MaximumVectorEntries = 10;
+      TickTime = 1000;
+
+      CPU_CORE  RP2350_0
+      {
+          CORE_PHYSICAL_ID = 0;
+          VENDOR = "RPI";
+          CORE_TYPE = "CORTEX_M33";
+      };
+
+      CPU_CORE RP2350_1
+      {
+          CORE_PHYSICAL_ID = 1;
+          VENDOR = "RPI";
+          CORE_TYPE = "CORTEX_M33";
+      };
+   };
+
+   TASK OSTASK_TASK01 {
+      CORE = 0;
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 2;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = OSEVT_EVENT01;
+      EVENT = OSEVT_EVENT02;
+      EVENT = OSEVT_EVENT03;
+      RESOURCE = OSRES_RESOURCE01;
+      RESOURCE = OSRES_RESOURCE02;
+      StackSize = 0x800;
+   };
+   
+   TASK OSTASK_TASK02 {
+      CORE = 0;
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 5;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = OSEVT_EVENT03;
+      EVENT = OSEVT_EVENT02;
+      EVENT = OSEVT_EVENT01;
+      RESOURCE = OSRES_RESOURCE02;
+      RESOURCE = OSRES_RESOURCE01;
+      StackSize = 800;
+   };
+
+   TASK OSTASK_TASK03 {
+      CORE = 1;
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 15;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = OSEVT_EVENT03;
+      EVENT = OSEVT_EVENT01;
+      RESOURCE = OSRES_RESOURCE03;
+      StackSize = 800;
+   };
+
+   TASK OSTASK_TASK04 {
+      CORE = 1;
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 15;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = OSEVT_EVENT04;
+      RESOURCE = OSRES_RESOURCE03;
+      StackSize = 800;
+   };
+   ALARM OSALARM_ALARM01 {
+      CORE = 0;
+      ACTION = SETEVENT
+      {
+         TASK = OSTASK_TASK01;
+         EVENT = OSEVT_EVENT01;
+      };
+      AUTOSTART = FALSE;
+   };
+
+   ALARM OSALARM_ALARM02 {
+      CORE = 0;
+      ACTION = ACTIVATETASK
+      {
+         TASK = OSTASK_TASK02;
+      };
+      AUTOSTART = FALSE;
+   };
+
+   ALARM OSALARM_ALARM03 {
+      CORE = 1;
+      ACTION = ALARMCALLBACK
+      {
+         ALARMCALLBACKNAME = "OsTickTimerCallback";
+      };
+      AUTOSTART = TRUE
+      {
+         ALARMTIME = 0;
+         CYCLETIME = 5;
+      };
+   };
+
+   EVENT OSEVT_EVENT01 {
+      MASK = AUTO;
+   };
+
+   EVENT OSEVT_EVENT02 {
+      MASK = AUTO;
+   };
+
+   EVENT OSEVT_EVENT03 {
+      MASK = AUTO;
+   };
+
+   EVENT OSEVT_EVENT04 {
+      MASK = AUTO;
+   };
+
+   RESOURCE OSRES_RESOURCE01 {
+      CORE  = 0;
+      RESOURCEPROPERTY = STANDARD;
+   };
+
+   RESOURCE OSRES_RESOURCE02 {
+      CORE  = 0;
+      RESOURCEPROPERTY = STANDARD;
+   };
+
+   RESOURCE OSRES_RESOURCE03 {
+      CORE  = 1;
+      RESOURCEPROPERTY = STANDARD;
+   };
+
+   SPINLOCK OSSPINL_SPINLOCK01 {
+      SPINLOCKPROPERTY = STANDARD;
+   };
+
+   SPINLOCK OSSPINL_SPINLOCK03 {
+      SPINLOCKPROPERTY = STANDARD;
+   };
+
+   SPINLOCK OSSPINL_SPINLOCK02 {
+      SPINLOCKPROPERTY = STANDARD;
+   };
+
+   ISR ISR_000 {
+      CORE  = 0; /* logical id */
+      CATEGORY = 2;
+      VectorAddress = 0;
+   };
+
+   ISR ISR_001 {
+      CORE  = 1;
+      CATEGORY = 2;
+      VectorAddress = 1;
+   };
+
+   ISR ISR_005 {
+      CORE  = 1;
+      CATEGORY = 1;
+      VectorAddress = 5;
+   };
+
+};

@@ -45,6 +45,9 @@ _start:
         wsr a8, ccompare1
         wsr a8, ccompare2
 
+        /* init the processor status */
+        movi.n a2,  0x20
+        wsr a2, ps
 
         /* setup interrupt vector table */
         movi a10, _vector_table

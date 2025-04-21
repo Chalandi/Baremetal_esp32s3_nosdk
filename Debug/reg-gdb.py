@@ -25,7 +25,7 @@ class XtensaRegs(gdb.Command):
         super(XtensaRegs, self).__init__("_regs", gdb.COMMAND_USER)
 
     def invoke(self, arg, from_tty):
-        registers = [f"a{i}" for i in range(16)]
+        registers = [f"a{i}" for i in range(16)] + ["$interrupt"]
         output = []
 
         for reg in registers:
@@ -138,7 +138,7 @@ class list_symbols(gdb.Command):
         if elf_path:
             # Run nm command on the ELF binary
             try:
-                result = subprocess.check_output(['xtensa-esp32s3-elf-nm', '--defined-only', elf_path], stderr=subprocess.STDOUT)
+                result = subprocess.check_output(['xtensa-esp32s3-elf-nm', '-n', elf_path], stderr=subprocess.STDOUT)
                 print(result.decode('utf-8'))
             except subprocess.CalledProcessError as e:
                 print(f"Error calling nm: {e.output.decode('utf-8')}")

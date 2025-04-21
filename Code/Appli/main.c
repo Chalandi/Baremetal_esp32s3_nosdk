@@ -22,6 +22,10 @@
 #include "esp32s3.h"
 #include "printf.h"
 
+#ifdef OSEK
+#include "OsAPIs.h"
+#endif
+
 //=============================================================================
 // Defines
 //=============================================================================
@@ -60,12 +64,16 @@
 //=============================================================================
 void main(void);
 void main_c1(void);
-void blink_led(void);
-void systicktimer_1us_base(void);
-void systicktimer_1ms_base(void);
 
 extern void Mcu_StartCore1(void);
 extern uint32_t get_core_id(void);
+
+#ifndef OSEK
+void blink_led(void);
+void systicktimer_1us_base(void);
+void systicktimer_1ms_base(void);
+#endif
+
 extern void enable_irq(uint32_t mask);
 extern void set_cpu_private_timer(uint32_t timer_id, uint32_t ticks);
 extern void Mcu_StartCoProcessorRiscV(void);
@@ -87,16 +95,23 @@ void main(void)
 {
   printf("Hello from core %d\r\n", get_core_id());
 
+#ifndef OSEK
+
   GPIO->OUT.reg |= CORE0_LED;
 
   /* enable timers interrupt on core 0 */
-  enable_irq((1UL << 16) | (1UL << 15) | (1UL << 6) );
+  enable_irq((1UL << 15) | (1UL << 7));
 
   /* start the systick timer (1us base)*/
   set_cpu_private_timer(0, 80);
 
   /* start the systick timer (1ms base)*/
   set_cpu_private_timer(2, 80000);
+
+  /* set the private cpu timer1 for core 0 */
+  set_cpu_private_timer(1, LED_BLINK_FREQ_1HZ);
+
+#endif
 
   /* start the core 1*/
   Mcu_StartCore1();
@@ -106,8 +121,10 @@ void main(void)
   Mcu_StartCoProcessorRiscV();
 #endif
 
-  /* set the private cpu timer1 for core 0 */
-  set_cpu_private_timer(1, LED_BLINK_FREQ_1HZ);
+#ifdef OSEK
+  /* start the OS */
+  OS_StartOS(APP_MODE_DEFAULT);
+#endif
 
   for(;;);
 }
@@ -123,16 +140,26 @@ void main_c1(void)
 {
   printf("Hello from core %d\r\n", get_core_id());
 
+#ifndef OSEK
   GPIO->OUT.reg |= CORE1_LED;
 
   /* enable timer1 interrupt on core 1 */
-  enable_irq((uint32_t)(1UL << 15));
+  enable_irq((uint32_t)(1UL << 15) | (1UL << 7));
 
   /* set the private cpu timer1 for core 1 */
   set_cpu_private_timer(1, LED_BLINK_FREQ_1HZ);
+#endif
+
+#ifdef OSEK
+  /* start the OS */
+  OS_StartOS(APP_MODE_DEFAULT);
+#endif
 
   for(;;);
 }
+
+#ifndef OSEK
+
 //-----------------------------------------------------------------------------------------
 /// \brief  
 ///
@@ -203,3 +230,5 @@ void blink_led(void)
     GPIO->OUT.reg ^= CORE0_LED;
   }
 }
+
+#endif

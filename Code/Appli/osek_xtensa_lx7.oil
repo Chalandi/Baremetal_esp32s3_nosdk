@@ -1,0 +1,173 @@
+// OIL-Definition-File
+OIL_VERSION = "2.3";
+
+CPU ESP32S3 {
+
+   OS MyOSEK {
+      MULTICORE = TRUE;
+      STARTUPHOOK = TRUE;
+      ERRORHOOK = TRUE;
+      SHUTDOWNHOOK = TRUE;
+      PRETASKHOOK = TRUE;
+      POSTTASKHOOK = TRUE;
+      WithStackCheck = TRUE;
+      CpuFrequency = 16.000000;
+      MaximumVectorEntries = 99;
+      TickTime = 1000;
+
+      CPU_CORE  ESP32S3_0
+      {
+          CORE_PHYSICAL_ID = 0;
+          VENDOR = "ESP";
+          CORE_TYPE = "XTENSA_LX7";
+      };
+
+      CPU_CORE ESP32S3_1
+      {
+          CORE_PHYSICAL_ID = 1;
+          VENDOR = "ESP";
+          CORE_TYPE = "XTENSA_LX7";
+      };
+   };
+
+   TASK T1 {
+      CORE = 0;
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 2;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = EVT_BLINK_BLUE_LED_FAST;
+      EVENT = EVT_TOGGLE_BLUE_LED;
+      RESOURCE = OSRES_RESOURCE01;
+      StackSize = 0x400;
+   };
+   
+   TASK T2 {
+      CORE = 0;
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 5;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = EVT_BLINK_BLUE_LED_SLOW;
+      RESOURCE = OSRES_RESOURCE01;
+      StackSize = 0x400;
+   };
+
+   TASK T3 {
+      CORE = 1;
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 1;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = EVT_BLINK_RED_LED_FAST;
+      StackSize = 0x400;
+   };
+
+   TASK T4 {
+      CORE = 1;
+      TYPE = AUTO;
+      SCHEDULE = FULL;
+      PRIORITY = 15;
+      ACTIVATION = 1;
+      AUTOSTART = TRUE;
+      EVENT = EVT_BLINK_RED_LED_SLOW;
+      StackSize = 0x400;
+   };
+
+   ALARM ALARM_BLINK_BLUE_LED_FAST {
+      CORE = 0;
+      ACTION = SETEVENT
+      {
+         TASK = T1;
+         EVENT = EVT_BLINK_BLUE_LED_FAST;
+      };
+      AUTOSTART = FALSE;
+   };
+
+   ALARM ALARM_BLINK_BLUE_LED_SLOW {
+      CORE = 0;
+      ACTION = SETEVENT
+      {
+         TASK = T2;
+         EVENT = EVT_BLINK_BLUE_LED_SLOW;
+      };
+      AUTOSTART = FALSE;
+   };
+
+   ALARM ALARM_BLINK_RED_LED_FAST {
+      CORE = 1;
+      ACTION = SETEVENT
+      {
+         TASK = T3;
+         EVENT = EVT_BLINK_RED_LED_FAST;
+      };
+      AUTOSTART = FALSE;
+   };
+
+   ALARM ALARM_BLINK_RED_LED_SLOW {
+      CORE = 1;
+      ACTION = SETEVENT
+      {
+         TASK = T4;
+         EVENT = EVT_BLINK_RED_LED_SLOW;
+      };
+      AUTOSTART = FALSE;
+   };
+
+   EVENT EVT_BLINK_BLUE_LED_FAST {
+      MASK = AUTO;
+   };
+
+   EVENT EVT_BLINK_BLUE_LED_SLOW {
+      MASK = AUTO;
+   };
+
+   EVENT EVT_BLINK_RED_LED_FAST {
+      MASK = AUTO;
+   };
+
+   EVENT EVT_BLINK_RED_LED_SLOW {
+      MASK = AUTO;
+   };
+
+   EVENT EVT_TOGGLE_BLUE_LED {
+      MASK = AUTO;
+   };
+
+   RESOURCE OSRES_RESOURCE01 {
+      CORE  = 0;
+      RESOURCEPROPERTY = STANDARD;
+   };
+
+
+   SPINLOCK OSSPINL_SPINLOCK01 {
+      SPINLOCKPROPERTY = STANDARD;
+   };
+
+   SPINLOCK OSSPINL_SPINLOCK02 {
+      SPINLOCKPROPERTY = STANDARD;
+   };
+
+   IPC T1_Mailbox {
+    TASK = T1;
+    RESOURCE = OSRES_RESOURCE01;
+    SIZE = 0x100;
+   };
+
+
+   ISR osCrossCoreReceiveRequest {
+      CORE  = 0;
+      CATEGORY = 2;
+      VectorAddress = 80;
+   };
+
+   ISR osCrossCoreReceiveRequest {
+      CORE  = 1;
+      CATEGORY = 2;
+      VectorAddress = 79;
+   };
+
+};

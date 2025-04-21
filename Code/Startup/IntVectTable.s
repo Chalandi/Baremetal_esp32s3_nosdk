@@ -189,8 +189,36 @@ _vector_handlers:
                         rfe
 
         Level1UserInterruptVectorHandler:
+
+                        wsr a2, misc0
+                        wsr a3, misc1
+                        rsr a2, interrupt
+                        movi.n a3, 7 /* IRQ7-Level1 */
+                        bbs a2, a3, .L_call_osdispatcher
+                        movi.n a3, 6 /* IRQ6-Level1 */
+                        bbs a2, a3, .L_call_osSysTickTimer0Interrupt
+                        movi.n a3, 5 /* IRQ5-Level1 */
+                        bbs a2, a3, .L_call_osSysPeripheralInterrupt
+                        rsr a2, misc0
+                        rsr a3, misc1
                         call_isr Isr_Level1UserInterrupt
                         rfe
+.L_call_osdispatcher:
+                        movi.n a2, 0x80
+                        wsr a2, intclear
+                        rsr a2, misc0
+                        rsr a3, misc1
+                        j osDispatchHandler
+
+.L_call_osSysTickTimer0Interrupt:
+                        rsr a2, misc0
+                        rsr a3, misc1
+                        j osSysTickTimerHandler
+
+.L_call_osSysPeripheralInterrupt:
+                        rsr a2, misc0
+                        rsr a3, misc1
+                        j osCat2IsrWrapper /* all cat2 interrupts must use IRQ5 */
 
 .size _vector_handlers, .-_vector_handlers
 
