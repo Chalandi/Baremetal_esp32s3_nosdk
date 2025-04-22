@@ -28,7 +28,7 @@ INC_FILES += $(SRC_DIR)/OSEK/HwPlatform/$(CORE_FAMILY)
 # Tools
 ############################################################################################
 OS_TCB_GEN_TOOL =$(SRC_DIR)/OSEK/Generator/OilConfigGenerator.py
-OS_SIZE_SCRIPT=$(SRC_DIR)/OSEK/OsSize.py
+OS_SIZE_SCRIPT=$(SRC_DIR)/OSEK/Script/OsSize.py
 
 ############################################################################################
 # Recipes
