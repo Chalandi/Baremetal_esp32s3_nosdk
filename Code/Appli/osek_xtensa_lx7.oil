@@ -160,7 +160,7 @@ CPU ESP32S3 {
     TASK = T1;
     RESOURCE = OSRES_T1_MBX;
     EVENT = EVT_T1_MBX;
-    MODE = LOCAL; /* or BROADCAST */
+    MODE = BROADCAST; /* or BROADCAST */
     SIZE = 100;
    };
 

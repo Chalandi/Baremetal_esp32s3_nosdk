@@ -14,7 +14,8 @@
 #define LED_GREEN_TOGGLE()  GPIO->OUT.reg ^= CORE0_LED
 #define LED_BLUE_TOGGLE()   GPIO->OUT.reg ^= (1ul << 8)
 #define LED_RED_TOGGLE()    GPIO->OUT.reg ^= CORE1_LED
-#define LED_IPC_TOGGLE()   GPIO->OUT.reg ^= (1ul << 13)
+#define LED_IPC_TOGGLE()    GPIO->OUT.reg ^= (1ul << 13)
+#define LED_IPC_CROSSCORE_TOGGLE() GPIO->OUT.reg ^= (1ul << 10)
 
 //===============================================================================================================================
 // OS TASK : T1
@@ -59,6 +60,11 @@ TASK(T1)
           {
             /* toggle IPC led */
             LED_IPC_TOGGLE();
+          }
+          if(myData == 0x55bb55bb)
+          {
+            /* toggle IPC led */
+            LED_IPC_CROSSCORE_TOGGLE();
           }
         }
         else
@@ -145,6 +151,14 @@ TASK(T3)
         
         /* cross-core os service : core1 is requesting the Task T1 running on core0 to blink an LED */
         OS_SetEvent(T1, EVT_TOGGLE_BLUE_LED);
+        
+        uint32 myData = 0x55bb55bb;
+        OsIpcMbxdataType Msgdata = {0, 4, (uint8_t*)&myData}; 
+        if(IPC_NOK == OS_IpcSendData(OS_IPC_T1_MAILBOX, (OsIpcMbxdataType const*) &Msgdata))
+        {
+          DISABLE_INTERRUPTS();
+          for(;;);
+        }
       }
     }
     else

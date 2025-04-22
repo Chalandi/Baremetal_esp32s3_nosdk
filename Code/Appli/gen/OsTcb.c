@@ -14,7 +14,7 @@
 //
 // Oil file        : D:/Git_Repo/Baremetal_esp32s3_nosdk/Build/../Code/Appli/osek_xtensa_lx7.oil
 //
-// Generation Time : 22.04.2025 16:09:33
+// Generation Time : 22.04.2025 17:27:52
 //
 // Description     : Auto-generated OS Configuration file
 //
@@ -790,5 +790,5 @@ const uint8 osLogicalToPhysicalCoreIdMapping[2] = {
 /********************************************************************************************************************/
 /* IPCs */
 /********************************************************************************************************************/
-OS_IPC_DEF_MBX_QUEUE(T1_Mailbox, T1, 100, OSRES_T1_MBX, EVT_T1_MBX, IPC_MBX_MODE_LOCAL);
+OS_IPC_DEF_MBX_QUEUE(T1_Mailbox, T1, 100, OSRES_T1_MBX, EVT_T1_MBX, IPC_MBX_MODE_BROADCAST);
 
