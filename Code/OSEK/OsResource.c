@@ -40,9 +40,10 @@ OsStatusType OS_GetResource(OsResourceType ResID)
     const OsResourceType LocalResID = osLocalResourceAssignment.local_id;
     
     if(((OCB_Cfg[osActiveCore]->pRes[LocalResID]->AuthorizedTask & (1ul << OCB_Cfg[osActiveCore]->OsCurrentTaskId)) != 0) &&
-       OCB_Cfg[osActiveCore]->pRes[LocalResID]->CurrentOccupiedTask == OCB_Cfg[osActiveCore]->OsNumberOfTasks)
+       OCB_Cfg[osActiveCore]->pRes[LocalResID]->Occupied == 0)
     {
-      /* The resource is available */
+      /* The resource is available, mark it now as occupied */
+      OCB_Cfg[osActiveCore]->pRes[LocalResID]->Occupied = 1ul;
 
       /* reserve the resource to the current task */
       OCB_Cfg[osActiveCore]->pRes[LocalResID]->CurrentOccupiedTask = OCB_Cfg[osActiveCore]->OsCurrentTaskId;
@@ -84,9 +85,10 @@ OsStatusType OS_ReleaseResource(OsResourceType ResID)
     const osObjectCoreAsgn_t osLocalResourceAssignment = osGetLocalResourceAssignment(ResID);
     const OsResourceType LocalResID = osLocalResourceAssignment.local_id;
 
-    if(OCB_Cfg[osActiveCore]->pRes[LocalResID]->CurrentOccupiedTask == OCB_Cfg[osActiveCore]->OsCurrentTaskId)
+    if((OCB_Cfg[osActiveCore]->pRes[LocalResID]->CurrentOccupiedTask == OCB_Cfg[osActiveCore]->OsCurrentTaskId) && (OCB_Cfg[osActiveCore]->pRes[LocalResID]->Occupied == 1ul))
     {
       /* Release the resource */
+      OCB_Cfg[osActiveCore]->pRes[LocalResID]->Occupied = 0;
       OCB_Cfg[osActiveCore]->pRes[LocalResID]->CurrentOccupiedTask = OCB_Cfg[osActiveCore]->OsNumberOfTasks;
       
       /* Set the default prio to the current task */

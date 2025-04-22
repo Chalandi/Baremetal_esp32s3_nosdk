@@ -170,6 +170,7 @@ typedef struct
 typedef struct
 {
   const uint32  ResCeilingPrio;
+  uint32        Occupied;
   uint32        CurrentOccupiedTask;
   const uint32  AuthorizedTask;
 }OsResourceConfigType;
@@ -224,17 +225,24 @@ typedef struct {
   uint8_t*        buf;
 }OsCircularFifoQueueDataType;
 
-#define OS_CIRCULAR_FIFO_DEF(id,fifosize) uint8_t buffer_##id##[fifosize]={0};   \
+#define OS_CIRCULAR_FIFO_DEF(id,fifosize) uint8_t buffer_##id[fifosize]={0};   \
                                           OsCircularFifoQueueDataType Fifo_##id = {0,0,fifosize,buffer_##id}
 
 /* IPC types */
 
+typedef enum
+{
+  IPC_MBX_MODE_LOCAL = 0,
+  IPC_MBX_MODE_BROADCAST
+}OsIpcMbxModeType;
+
 typedef struct{
-  uint16 const                       owner;    /* id of the task owning the mailbox */
-  uint16 const                       res;      /* resource used to protect the mailbox */
-  uint32 const                       evt;      /* event used to notify the owner of a new msg in the mailbox */
-  uint16                             spinlock; /* spinlock used to protect the mailbox in multicore context */
-  OsCircularFifoQueueDataType* const pQueue;   /* pointer to the circulair fifo queue */
+  const OsTaskType                   owner;  /* id of the task owned the mailbox */
+  const OsResourceType               res;    /* resource used to protect the mailbox */
+  const OsEventMaskType              evt;    /* event used to notify the owner of a new msg in the mailbox */
+  uint32                             lock;   /* spinlock used to protect the mailbox in multicore context */
+  const OsIpcMbxModeType             mode;   /* local/cross-core mailbox */
+  OsCircularFifoQueueDataType* const pQueue; /* pointer to the circulair fifo queue */
 }OsIpcMbxCfgType;
 
 
@@ -249,11 +257,11 @@ typedef enum{
   IPC_OK
 }IpcStatus;
 
-#define OS_IPC_DEF_MBX_QUEUE(TaskId, size, ressource, event)   OS_CIRCULAR_FIFO_DEF(TaskId,size); \
-               OsIpcMbxCfgType IpcMbx_##TaskId = {.owner=TaskId, .res=ressource, .evt=event, .spinlock = 0, .pQueue=&Fifo_##TaskId}
+#define OS_IPC_DEF_MBX_QUEUE(name, taskId, size, ressource, event, _mode)   OS_CIRCULAR_FIFO_DEF(name,size); \
+               OsIpcMbxCfgType IpcMbx_##name = {.owner=taskId, .res=ressource, .evt=event, .lock = 0, .mode = _mode, .pQueue=&Fifo_##name}
 
-#define pIPC(Owner) &IpcMbx_##Owner
-#define gIPC(Owner) IpcMbx_##Owner
+#define pIPC(Name) &IpcMbx_##Name
+#define gIPC(Name) IpcMbx_##Name
 
 
 typedef struct

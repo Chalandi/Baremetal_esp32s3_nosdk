@@ -30,34 +30,51 @@
 ///
 /// \return 
 //------------------------------------------------------------------------------------------------------------------
-IpcStatus OS_IpcSendData(OsIpcMbxCfgType const * const MsgBox, OsIpcMbxdataType const* Msgdata)
+IpcStatus OS_IpcSendData(OsIpcMbxCfgType* const MsgBox, OsIpcMbxdataType const* Msgdata)
 {
 
   const uint16 size = sizeof(Msgdata->id) + sizeof(Msgdata->size) + Msgdata->size;
   OsTaskStateType taskstate;
 
-  /* check if the sender belongs to the same core of the task owning the mailbox 
-     Tasks on the same core using only the resource
-     Tasks on different cores will use spinlock after taking the Resource
-  */
+  const uint32 osActiveCore = osGetLogicalCoreId(osGetCoreId());
+
+  if((IPC_MBX_MODE_LOCAL == MsgBox->mode) && (osActiveCore != osTaskCoreAsgnLookupTable[MsgBox->owner].pinned_core))
+  {
+    /* the active core is not allowed to use the mailbox */
+    return(IPC_NOK);
+  }
 
   /* get the owner state status */
   (void)OS_GetTaskState(MsgBox->owner, &taskstate);
 
-  /* before sending the data check if the queue has enough space or not 
+  /* before sending the data check if the queue has enough space or not
      and the target task not suspended */
   if(size <= osCircularFifoQueue_GetAvailableSize(MsgBox->pQueue) && (taskstate != SUSPENDED))
   {
-    /* lock the mailbox */
-    OS_GetResource(MsgBox->res);
+    if(IPC_MBX_MODE_LOCAL == MsgBox->mode)
+    {
+      OS_GetResource(MsgBox->res);
+    }
+    else
+    {
+      osHwAcquireSpinLock(&MsgBox->lock);
+      OS_SuspendOSInterrupts();
+    }
 
     /* push data into the queue */
     (void)osCircularFifoQueue_Push(MsgBox->pQueue, (uint8*)&Msgdata->id, sizeof(Msgdata->id));
     (void)osCircularFifoQueue_Push(MsgBox->pQueue, (uint8*)&Msgdata->size, sizeof(Msgdata->size));
     (void)osCircularFifoQueue_Push(MsgBox->pQueue, (uint8*)Msgdata->pdata, Msgdata->size);
 
-    /* unlock the mailbox */
-    OS_ReleaseResource(MsgBox->res);
+    if(IPC_MBX_MODE_LOCAL == MsgBox->mode)
+    {
+      OS_ReleaseResource(MsgBox->res);
+    }
+    else
+    {
+      osHwReleaseSpinLock(&MsgBox->lock);
+      OS_ResumeOSInterrupts();
+    }
 
     /* set event */
     OS_SetEvent(MsgBox->owner,MsgBox->evt);
@@ -79,24 +96,45 @@ IpcStatus OS_IpcSendData(OsIpcMbxCfgType const * const MsgBox, OsIpcMbxdataType 
 ///
 /// \return 
 //------------------------------------------------------------------------------------------------------------------
-IpcStatus OS_IpcReceiveData(OsIpcMbxCfgType const * const  MsgBox, OsIpcMbxdataType const* Msgdata)
+IpcStatus OS_IpcReceiveData(OsIpcMbxCfgType* const  MsgBox, OsIpcMbxdataType const* Msgdata)
 {
-  /* check if the current task is the owner task
-  */
+  const uint32 osActiveCore = osGetLogicalCoreId(osGetCoreId());
+
+  /* check if the current task is the owner task */
+  if((OCB_Cfg[osActiveCore]->OsCurrentTaskId != osTaskCoreAsgnLookupTable[MsgBox->owner].local_id)
+  || (osActiveCore != osTaskCoreAsgnLookupTable[MsgBox->owner].pinned_core))
+  {
+    /* the calling task is not allowed to use the mailbox */
+    return(IPC_NOK);
+  }
 
   /* check if the queue is not empty */
   if(!osCircularFifoQueue_IsEmpty(MsgBox->pQueue))
   {
-    /* lock the mailbox */
-    OS_GetResource(MsgBox->res);
+    if(IPC_MBX_MODE_LOCAL == MsgBox->mode)
+    {
+      OS_GetResource(MsgBox->res);
+    }
+    else
+    {
+      osHwAcquireSpinLock(&MsgBox->lock);
+      OS_SuspendOSInterrupts();
+    }
 
     /* push data into the queue */
     (void)osCircularFifoQueue_Pop(MsgBox->pQueue, (uint8*)&Msgdata->id, sizeof(Msgdata->id));
     (void)osCircularFifoQueue_Pop(MsgBox->pQueue, (uint8*)&Msgdata->size, sizeof(Msgdata->size));
     (void)osCircularFifoQueue_Pop(MsgBox->pQueue, (uint8*)Msgdata->pdata, Msgdata->size);
 
-    /* unlock the mailbox */
-    OS_ReleaseResource(MsgBox->res);
+    if(IPC_MBX_MODE_LOCAL == MsgBox->mode)
+    {
+      OS_ReleaseResource(MsgBox->res);
+    }
+    else
+    {
+      osHwReleaseSpinLock(&MsgBox->lock);
+      OS_ResumeOSInterrupts();
+    }
 
     return(IPC_OK);
   }

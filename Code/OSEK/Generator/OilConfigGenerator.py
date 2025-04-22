@@ -43,6 +43,7 @@ import OilAlarms
 import OilInterrupts
 import OilGenTemplate
 import OilTcbGen
+import OilMbx
 
 # ANSI color code definition
 class Color:
@@ -114,6 +115,9 @@ if (args.oil_file != None):
 
     # Parse interrupts
     OilInterrupts.OilInterruptsParser(args, OilFileContent)
+
+    # Parse mailboxes
+    OilMbx.OilMbxParser(args, OilFileContent)
 
 # Generate TCB:
 if (args.gen_folder != None):
@@ -313,6 +317,7 @@ if (args.gen_folder != None):
                                       OilSpinlocks,
                                       OilAlarms,
                                       OilInterrupts,
+                                      OilMbx,
                                       OilGenTemplate)
 
 # Generate OIL template

@@ -14,7 +14,7 @@
 //
 // Oil file        : D:/Git_Repo/Baremetal_esp32s3_nosdk/Build/../Code/Appli/osek_xtensa_lx7.oil
 //
-// Generation Time : 22.04.2025 02:05:15
+// Generation Time : 22.04.2025 16:09:33
 //
 // Description     : Auto-generated OS Configuration file
 //
@@ -46,7 +46,7 @@
   ╒════════╤════════╤════════════╤════════════╤══════════════╤═════════════╤══════════════╤═══════════════════╤═══════════════╕
   │ Task   │ Type   │ Schedule   │   Priority │   Activation │ Autostart   │ Stack size   │   Wait event mask │   Pinned core │
   ╞════════╪════════╪════════════╪════════════╪══════════════╪═════════════╪══════════════╪═══════════════════╪═══════════════╡
-  │ T1     │ AUTO   │ FULL       │          2 │            1 │ TRUE        │ 0x400        │                 3 │             0 │
+  │ T1     │ AUTO   │ FULL       │          2 │            1 │ TRUE        │ 0x400        │                 7 │             0 │
   ├────────┼────────┼────────────┼────────────┼──────────────┼─────────────┼──────────────┼───────────────────┼───────────────┤
   │ T2     │ AUTO   │ FULL       │          5 │            1 │ TRUE        │ 0x400        │                 1 │             0 │
   ├────────┼────────┼────────────┼────────────┼──────────────┼─────────────┼──────────────┼───────────────────┼───────────────┤
@@ -62,6 +62,7 @@
   ╞════════╪═════════════════════════╡
   │ T1     │ EVT_BLINK_BLUE_LED_FAST │
   │        │ EVT_TOGGLE_BLUE_LED     │
+  │        │ EVT_T1_MBX              │
   ├────────┼─────────────────────────┤
   │ T2     │ EVT_BLINK_BLUE_LED_SLOW │
   ├────────┼─────────────────────────┤
@@ -71,17 +72,17 @@
   ╘════════╧═════════════════════════╛
 
   Task's resources: 
-  ╒════════╤══════════════════╕
-  │ Task   │ Resources        │
-  ╞════════╪══════════════════╡
-  │ T1     │ OSRES_RESOURCE01 │
-  ├────────┼──────────────────┤
-  │ T2     │ OSRES_RESOURCE01 │
-  ├────────┼──────────────────┤
-  │ T3     │                  │
-  ├────────┼──────────────────┤
-  │ T4     │                  │
-  ╘════════╧══════════════════╛
+  ╒════════╤══════════════╕
+  │ Task   │ Resources    │
+  ╞════════╪══════════════╡
+  │ T1     │ OSRES_T1_MBX │
+  ├────────┼──────────────┤
+  │ T2     │ OSRES_T1_MBX │
+  ├────────┼──────────────┤
+  │ T3     │              │
+  ├────────┼──────────────┤
+  │ T4     │              │
+  ╘════════╧══════════════╛
 
   Events:
   ╒═════════════════════════╤════════╕
@@ -93,17 +94,19 @@
   ├─────────────────────────┼────────┤
   │ EVT_BLINK_RED_LED_FAST  │ 0x1    │
   ├─────────────────────────┼────────┤
+  │ EVT_T1_MBX              │ 0x4    │
+  ├─────────────────────────┼────────┤
   │ EVT_BLINK_RED_LED_SLOW  │ 0x1    │
   ├─────────────────────────┼────────┤
   │ EVT_TOGGLE_BLUE_LED     │ 0x2    │
   ╘═════════════════════════╧════════╛
-  Total number of events: 5
+  Total number of events: 6
 
   Resources:
   ╒═════════════════════╤════════════════════╤════════════╤════════╤═══════════════╕
   │ Resource            │   Priority ceiling │ Property   │   Mask │   Pinned core │
   ╞═════════════════════╪════════════════════╪════════════╪════════╪═══════════════╡
-  │ OSRES_RESOURCE01    │                  2 │ STANDARD   │      3 │             0 │
+  │ OSRES_T1_MBX        │                  2 │ STANDARD   │      3 │             0 │
   ├─────────────────────┼────────────────────┼────────────┼────────┼───────────────┤
   │ RES_SCHEDULER_CORE0 │                  3 │ STANDARD   │      3 │             0 │
   ├─────────────────────┼────────────────────┼────────────┼────────┼───────────────┤
@@ -119,7 +122,7 @@
   ├─────────────────────┼────────────┤
   │ T2                  │          1 │
   ├─────────────────────┼────────────┤
-  │ OSRES_RESOURCE01    │          2 │
+  │ OSRES_T1_MBX        │          2 │
   ├─────────────────────┼────────────┤
   │ RES_SCHEDULER_CORE0 │          3 │
   ╘═════════════════════╧════════════╛
@@ -186,7 +189,7 @@ static OsTcbType OsTcb_T1 = {
                                          0, /* Prio */
                                          0, /* CeilingPrio */
                                          0, /* SetEvtMask */
-                                         0x3, /* WaitEvtMask */ 
+                                         0x7, /* WaitEvtMask */ 
                                          1, /* MaxAllowedMultipleActivation */
                                          0, /* MultipleActivation */
                                          EXTENDED, /* TaskType */
@@ -383,10 +386,11 @@ const osObjectCoreAsgn_t osAlarmCoreAsgnLookupTable[4] = {
 };
 
 /********************************************************************************************************************/
-/* Resource: OSRES_RESOURCE01 (core0) */
+/* Resource: OSRES_T1_MBX (core0) */
 /********************************************************************************************************************/
-static OsResourceConfigType OsResource_OSRES_RESOURCE01 = {
+static OsResourceConfigType OsResource_OSRES_T1_MBX = {
                                                             2, /* ResCeilingPrio */
+                                                            0, /* Occupied */
                                                             0, /* CurrentOccupiedTask */
                                                             3 /* AuthorizedTask */
                                                           };
@@ -396,6 +400,7 @@ static OsResourceConfigType OsResource_OSRES_RESOURCE01 = {
 /********************************************************************************************************************/
 static OsResourceConfigType OsResource_RES_SCHEDULER_CORE0 = {
                                                             3, /* ResCeilingPrio */
+                                                            0, /* Occupied */
                                                             0, /* CurrentOccupiedTask */
                                                             3 /* AuthorizedTask */
                                                           };
@@ -405,6 +410,7 @@ static OsResourceConfigType OsResource_RES_SCHEDULER_CORE0 = {
 /********************************************************************************************************************/
 static OsResourceConfigType OsResource_RES_SCHEDULER_CORE1 = {
                                                             2, /* ResCeilingPrio */
+                                                            0, /* Occupied */
                                                             0, /* CurrentOccupiedTask */
                                                             3 /* AuthorizedTask */
                                                           };
@@ -413,7 +419,7 @@ static OsResourceConfigType OsResource_RES_SCHEDULER_CORE1 = {
 /* OsResourceConfig (core0) */
 /********************************************************************************************************************/
 static const OsResourceConfigType* OsResourcesConfig_core0[2] = {
-    &OsResource_OSRES_RESOURCE01,
+    &OsResource_OSRES_T1_MBX,
     &OsResource_RES_SCHEDULER_CORE0,
 };
 
@@ -436,7 +442,7 @@ static const OsResourceId_t osResSchedulerMappingPerCore[2] __attribute__((used)
 /* osResourceCoreAsgnLookupTable */
 /********************************************************************************************************************/
 const osObjectCoreAsgn_t osResourceCoreAsgnLookupTable[3] = {
-    {.local_id=0, .pinned_core=0}, /* OSRES_RESOURCE01 */
+    {.local_id=0, .pinned_core=0}, /* OSRES_T1_MBX */
     {.local_id=1, .pinned_core=0}, /* RES_SCHEDULER_CORE0 */
     {.local_id=0, .pinned_core=1}, /* RES_SCHEDULER_CORE1 */
 };
@@ -780,3 +786,9 @@ const uint8 osLogicalToPhysicalCoreIdMapping[2] = {
     0, /* ESP32S3_0 : ESP - XTENSA_LX7 */
     1, /* ESP32S3_1 : ESP - XTENSA_LX7 */
 };
+
+/********************************************************************************************************************/
+/* IPCs */
+/********************************************************************************************************************/
+OS_IPC_DEF_MBX_QUEUE(T1_Mailbox, T1, 100, OSRES_T1_MBX, EVT_T1_MBX, IPC_MBX_MODE_LOCAL);
+

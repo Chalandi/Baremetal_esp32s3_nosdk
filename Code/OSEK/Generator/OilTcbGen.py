@@ -10,6 +10,7 @@ def OsConfigTcbGeneration(args, OilOs,
                                 OilSpinlocks,
                                 OilAlarms,
                                 OilInterrupts,
+                                OilMbx,
                                 OilGenTemplate):
 
     OsGenTcbSourceFilePath  = args.gen_folder + "/OsTcb.c"
@@ -242,6 +243,7 @@ def OsConfigTcbGeneration(args, OilOs,
         OsGenTcbSourceFile.write(
             f"static OsResourceConfigType OsResource_{resource_name} = {{\n\
                                                             {resource_prio}, /* ResCeilingPrio */\n\
+                                                            0, /* Occupied */\n\
                                                             0, /* CurrentOccupiedTask */\n\
                                                             {resource_mask} /* AuthorizedTask */\n\
                                                           }};\n\n")
@@ -422,8 +424,25 @@ def OsConfigTcbGeneration(args, OilOs,
     OsGenTcbSourceFile.write(f"const uint8 osLogicalToPhysicalCoreIdMapping[{OilOs.OsCoresTotalNumber}] = {{\n")
     for CoreIdx in range(OilOs.OsCoresTotalNumber):
         OsGenTcbSourceFile.write(f"    {OilOs.OsCoreList[CoreIdx][2]}, /* {OilOs.OsCoreList[CoreIdx][0]} : {OilOs.OsCoreList[CoreIdx][3]} - {OilOs.OsCoreList[CoreIdx][4]} */\n")
-    OsGenTcbSourceFile.write("};\n")
+    OsGenTcbSourceFile.write("};\n\n")
 
+####################################################################
+# Mailboxes:
+####################################################################
+    if(OilMbx.OsMbxTotalNumber > 0):
+        OsGenTcbSourceFile.write("/********************************************************************************************************************/\n")
+        OsGenTcbSourceFile.write(f"/* IPCs */\n")
+        OsGenTcbSourceFile.write("/********************************************************************************************************************/\n")
+        for MbxIdx in range(OilMbx.OsMbxTotalNumber):
+            Mbx_name     = OilMbx.OsMbxList[MbxIdx][0]
+            Mbx_task     = OilMbx.OsMbxList[MbxIdx][1]
+            Mbx_resource = OilMbx.OsMbxList[MbxIdx][2]
+            Mbx_event    = OilMbx.OsMbxList[MbxIdx][3]
+            Mbx_mode     = OilMbx.OsMbxList[MbxIdx][4]
+            Mbx_size     = OilMbx.OsMbxList[MbxIdx][5]
+            OsGenTcbSourceFile.write(f"OS_IPC_DEF_MBX_QUEUE({Mbx_name}, {Mbx_task}, {Mbx_size}, {Mbx_resource}, {Mbx_event}, {Mbx_mode});\n")
+
+    OsGenTcbSourceFile.write("\n")
     OsGenTcbSourceFile.close()
 
 ######################################################################################################################################################################################
@@ -502,6 +521,14 @@ def OsConfigTcbGeneration(args, OilOs,
     OsGenTcbHeaderFile.write("/* task function prototype */\n")
     for task_id in range(OilTasks.OsTaskTotalNumber):
         OsGenTcbHeaderFile.write(f"TASK({OilTasks.OsTasksList[task_id][0]});\n")
+    OsGenTcbHeaderFile.write("\n")
+
+    # Mailboxes
+    OsGenTcbHeaderFile.write("/* IPCs */\n")
+    for MbxIdx in range(OilMbx.OsMbxTotalNumber):
+        Mbx_name     = OilMbx.OsMbxList[MbxIdx][0]
+        OsGenTcbHeaderFile.write(f"extern OsIpcMbxCfgType IpcMbx_{Mbx_name};\n")
+        OsGenTcbHeaderFile.write(f"#define OS_IPC_{Mbx_name.upper()}  (OsIpcMbxCfgType* const)&IpcMbx_{Mbx_name}\n")
     OsGenTcbHeaderFile.write("\n")
 
     # Hooks prototypes

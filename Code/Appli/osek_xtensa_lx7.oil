@@ -39,7 +39,8 @@ CPU ESP32S3 {
       AUTOSTART = TRUE;
       EVENT = EVT_BLINK_BLUE_LED_FAST;
       EVENT = EVT_TOGGLE_BLUE_LED;
-      RESOURCE = OSRES_RESOURCE01;
+      EVENT = EVT_T1_MBX;
+      RESOURCE = OSRES_T1_MBX;
       StackSize = 0x400;
    };
    
@@ -51,7 +52,7 @@ CPU ESP32S3 {
       ACTIVATION = 1;
       AUTOSTART = TRUE;
       EVENT = EVT_BLINK_BLUE_LED_SLOW;
-      RESOURCE = OSRES_RESOURCE01;
+      RESOURCE = OSRES_T1_MBX;
       StackSize = 0x400;
    };
 
@@ -129,6 +130,10 @@ CPU ESP32S3 {
       MASK = AUTO;
    };
 
+   EVENT EVT_T1_MBX {
+      MASK = AUTO;
+   };
+
    EVENT EVT_BLINK_RED_LED_SLOW {
       MASK = AUTO;
    };
@@ -137,7 +142,7 @@ CPU ESP32S3 {
       MASK = AUTO;
    };
 
-   RESOURCE OSRES_RESOURCE01 {
+   RESOURCE OSRES_T1_MBX {
       CORE  = 0;
       RESOURCEPROPERTY = STANDARD;
    };
@@ -153,10 +158,11 @@ CPU ESP32S3 {
 
    IPC T1_Mailbox {
     TASK = T1;
-    RESOURCE = OSRES_RESOURCE01;
-    SIZE = 0x100;
+    RESOURCE = OSRES_T1_MBX;
+    EVENT = EVT_T1_MBX;
+    MODE = LOCAL; /* or BROADCAST */
+    SIZE = 100;
    };
-
 
    ISR osCrossCoreReceiveRequest {
       CORE  = 0;

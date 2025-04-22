@@ -14,7 +14,7 @@
 //
 // Oil file        : D:/Git_Repo/Baremetal_esp32s3_nosdk/Build/../Code/Appli/osek_xtensa_lx7.oil
 //
-// Generation Time : 22.04.2025 02:05:15
+// Generation Time : 22.04.2025 16:09:33
 //
 // Description     : Auto-generated OS Configuration file
 //
@@ -48,7 +48,7 @@ typedef enum {
 }OsAlarmId_t;
 
 typedef enum {
-    OSRES_RESOURCE01,
+    OSRES_T1_MBX,
     RES_SCHEDULER_CORE0,
     RES_SCHEDULER_CORE1,
     OS_INVALID_RESOURCE,
@@ -69,6 +69,10 @@ TASK(T1);
 TASK(T2);
 TASK(T3);
 TASK(T4);
+
+/* IPCs */
+extern OsIpcMbxCfgType IpcMbx_T1_Mailbox;
+#define OS_IPC_T1_MAILBOX  (OsIpcMbxCfgType* const)&IpcMbx_T1_Mailbox
 
 /* hooks function */
 #define OS_STARTUPHOOK
@@ -94,11 +98,12 @@ void osErrorHook_core1(OsStatusType error);
 #define EVT_BLINK_BLUE_LED_FAST    0x1
 #define EVT_BLINK_BLUE_LED_SLOW    0x1
 #define EVT_BLINK_RED_LED_FAST    0x1
+#define EVT_T1_MBX    0x4
 #define EVT_BLINK_RED_LED_SLOW    0x1
 #define EVT_TOGGLE_BLUE_LED    0x2
 
 /* wait event mask for each task */
-#define T1_WAIT_EVENT_MASK    0x3
+#define T1_WAIT_EVENT_MASK    0x7
 #define T2_WAIT_EVENT_MASK    0x1
 #define T3_WAIT_EVENT_MASK    0x1
 #define T4_WAIT_EVENT_MASK    0x1
