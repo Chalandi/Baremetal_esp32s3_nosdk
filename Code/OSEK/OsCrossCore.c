@@ -54,7 +54,7 @@ typedef void (*osCrossCoreExecuteFuncType)(uint32_t* pRequest);
 //------------------------------------------------------------------------------------------------------------------
 // prototypes
 //------------------------------------------------------------------------------------------------------------------
-static void osCrossCoreSendRequest(OsCoreId ActiveCore, OsCoreId TargetCore, uint32_t* pRequest, uint32_t* pResponse);
+static _Bool osCrossCoreSendRequest(OsCoreId ActiveCore, OsCoreId TargetCore, uint32_t* pRequest, uint32_t* pResponse);
 static void osCrossCore_ExecuteSetEvent(uint32_t* pRequest);
 static void osCrossCore_ExecuteGetEvent(uint32_t* pRequest);
 static void osCrossCore_ExecuteActivateTask(uint32_t* pRequest);
@@ -88,7 +88,7 @@ static const osCrossCoreExecuteFuncType osCrossCoreLookupTable[OS_CROSS_CORE_TOT
 ///
 /// \return
 //------------------------------------------------------------------------------------------------------------------
-static void osCrossCoreSendRequest(OsCoreId ActiveCore, OsCoreId TargetCore, uint32_t* pRequest, uint32_t* pResponse)
+static _Bool osCrossCoreSendRequest(OsCoreId ActiveCore, OsCoreId TargetCore, uint32_t* pRequest, uint32_t* pResponse)
 {
   /* 1- Disable os interrupt 
      2- Send Request (fill the HW FIFO and avoid anything that may trigger interrupt for error)
@@ -111,6 +111,9 @@ static void osCrossCoreSendRequest(OsCoreId ActiveCore, OsCoreId TargetCore, uin
      #define IDX_3_RSP_STATUS      3
 
   */
+  #define TIMEOUT_MS      5
+  uint32_t timeout      = 0;
+  uint64_t initial_tick = 0;
 
   /* acquire the local spinlock */
   osHwAcquireSpinLock((uint32_t*)&OCB_Cfg[TargetCore]->OsCrossCoreBufferLock);
@@ -133,29 +136,45 @@ static void osCrossCoreSendRequest(OsCoreId ActiveCore, OsCoreId TargetCore, uin
   /* enable OS interrupt */
   OS_ResumeOSInterrupts();
 
-  /* wait for the sync flag to be set by the target core */
-  while(OCB_Cfg[TargetCore]->OsCrossCoreBufferSyncFlag == 0);
-
-  /* acquire the local spinlock */
-  osHwAcquireSpinLock((uint32_t*)&OCB_Cfg[TargetCore]->OsCrossCoreBufferLock);
-
-  /* disable OS interrupt to avoid deadlock on current core */
-  OS_SuspendOSInterrupts();
-
-  /* receive the response */
-  for(uint32_t cpt=0; cpt <= (pRequest[IDX_2_RSP_SIZE] + CROSS_CORE_REQ_RES_HEADER_SIZE); cpt++)
+  /* get current systick counter value*/
+  initial_tick = osGetSystemTicksCounter();
+  
+  /* wait for the sync flag to be set by the target core or a timeout */
+  while((OCB_Cfg[TargetCore]->OsCrossCoreBufferSyncFlag == 0) && (timeout == 0))
   {
-    pResponse[cpt] = OCB_Cfg[TargetCore]->OsCrossCoreBuffer[cpt];
+    if(TIMEOUT_MS < osGetSystemTicksElapsedTime(initial_tick))
+        timeout = 1;
   }
 
-  /* clear the sync flag */
-  OCB_Cfg[TargetCore]->OsCrossCoreBufferSyncFlag = 0;
+  if(OCB_Cfg[TargetCore]->OsCrossCoreBufferSyncFlag)
+  {
+    /* acquire the local spinlock */
+    osHwAcquireSpinLock((uint32_t*)&OCB_Cfg[TargetCore]->OsCrossCoreBufferLock);
 
-  /* release the spin lock */
-  osHwReleaseSpinLock((uint32_t*)&OCB_Cfg[TargetCore]->OsCrossCoreBufferLock);
+    /* disable OS interrupt to avoid deadlock on current core */
+    OS_SuspendOSInterrupts();
 
-  /* enable OS interrupt */
-  OS_ResumeOSInterrupts();
+    /* receive the response */
+    for(uint32_t cpt=0; cpt <= (pRequest[IDX_2_RSP_SIZE] + CROSS_CORE_REQ_RES_HEADER_SIZE); cpt++)
+    {
+      pResponse[cpt] = OCB_Cfg[TargetCore]->OsCrossCoreBuffer[cpt];
+    }
+
+    /* clear the sync flag */
+    OCB_Cfg[TargetCore]->OsCrossCoreBufferSyncFlag = 0;
+
+    /* release the spin lock */
+    osHwReleaseSpinLock((uint32_t*)&OCB_Cfg[TargetCore]->OsCrossCoreBufferLock);
+
+    /* enable OS interrupt */
+    OS_ResumeOSInterrupts();
+
+    return(1);
+  }
+  else
+  {
+    return(0);
+  }
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -220,9 +239,14 @@ OsStatusType osCrossCore_SetEvent(OsCoreId ActiveCore, OsCoreId TargetCore, OsTa
   uint32_t Response[5] = {0};
 
   /* dispatch the request to the appropriate core */
-  osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response);
-
-  return(Response[IDX_3_RSP_STATUS]);
+  if(osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response))
+  {
+    return(Response[IDX_3_RSP_STATUS]);
+  }
+  else
+  {
+    return(E_OS_MULTICORE_COM_LOST);
+  }
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -264,11 +288,16 @@ OsStatusType osCrossCore_GetEvent(OsCoreId ActiveCore, OsCoreId TargetCore, OsTa
   uint32_t Response[5] = {0};
 
   /* dispatch the request to the appropriate core */
-  osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response);
+  if(osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response))
+  {
+    *Event = Response[IDX_3_RSP_STATUS + 1];
+    return(Response[IDX_3_RSP_STATUS]);
+  }
+  else
+  {
+    return(E_OS_MULTICORE_COM_LOST);
+  }
 
-  *Event = Response[IDX_3_RSP_STATUS + 1];
-
-  return(Response[IDX_3_RSP_STATUS]);
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -311,9 +340,14 @@ OsStatusType osCrossCore_ActivateTask(OsCoreId ActiveCore, OsCoreId TargetCore, 
   uint32_t Response[4] = {0};
 
   /* dispatch the request to the appropriate core */
-  osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response);
-
-  return(Response[IDX_3_RSP_STATUS]);
+  if(osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response))
+  {
+    return(Response[IDX_3_RSP_STATUS]);
+  }
+  else
+  {
+    return(E_OS_MULTICORE_COM_LOST);
+  }
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -353,11 +387,15 @@ OsStatusType osCrossCore_GetTaskState(OsCoreId ActiveCore, OsCoreId TargetCore, 
   uint32_t Response[5] = {0};
 
   /* dispatch the request to the appropriate core */
-  osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response);
-
-  *State = Response[IDX_3_RSP_STATUS + 1];
-
-  return(Response[IDX_3_RSP_STATUS]);
+  if(osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response))
+  {
+    *State = Response[IDX_3_RSP_STATUS + 1];
+    return(Response[IDX_3_RSP_STATUS]);
+  }
+  else
+  {
+    return(E_OS_MULTICORE_COM_LOST);
+  }
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -400,11 +438,15 @@ OsStatusType osCrossCore_GetAlarm(OsCoreId ActiveCore, OsCoreId TargetCore, OsAl
   uint32_t Response[5] = {0};
 
   /* dispatch the request to the appropriate core */
-  osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response);
-
-  *Tick = Response[IDX_3_RSP_STATUS + 1];
-
-  return(Response[IDX_3_RSP_STATUS]);
+  if(osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response))
+  {
+    *Tick = Response[IDX_3_RSP_STATUS + 1];
+    return(Response[IDX_3_RSP_STATUS]);
+  }
+  else
+  {
+    return(E_OS_MULTICORE_COM_LOST);
+  }
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -446,9 +488,14 @@ OsStatusType osCrossCore_SetRelAlarm(OsCoreId ActiveCore, OsCoreId TargetCore, O
   uint32_t Response[6] = {0};
 
   /* dispatch the request to the appropriate core */
-  osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response);
-
-  return(Response[IDX_3_RSP_STATUS]);
+  if(osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response))
+  {
+    return(Response[IDX_3_RSP_STATUS]);
+  }
+  else
+  {
+    return(E_OS_MULTICORE_COM_LOST);
+  }
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -490,9 +537,14 @@ OsStatusType osCrossCore_SetAbsAlarm(OsCoreId ActiveCore, OsCoreId TargetCore, O
   uint32_t Response[6] = {0};
 
   /* dispatch the request to the appropriate core */
-  osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response);
-
-  return(Response[IDX_3_RSP_STATUS]);
+  if(osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response))
+  {
+    return(Response[IDX_3_RSP_STATUS]);
+  }
+  else
+  {
+    return(E_OS_MULTICORE_COM_LOST);
+  }
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -534,9 +586,14 @@ OsStatusType osCrossCore_CancelAlarm(OsCoreId ActiveCore, OsCoreId TargetCore, O
   uint32_t Response[4] = {0};
 
   /* dispatch the request to the appropriate core */
-  osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response);
-
-  return(Response[IDX_3_RSP_STATUS]);
+  if(osCrossCoreSendRequest(ActiveCore, TargetCore, Request, Response))
+  {
+    return(Response[IDX_3_RSP_STATUS]);
+  }
+  else
+  {
+    return(E_OS_MULTICORE_COM_LOST);
+  }
 }
 
 //------------------------------------------------------------------------------------------------------------------

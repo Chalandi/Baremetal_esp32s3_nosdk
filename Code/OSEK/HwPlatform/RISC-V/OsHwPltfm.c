@@ -267,5 +267,28 @@ void osClearPendingInterrupt(uint32_t InterruptId)
 //------------------------------------------------------------------------------------------------------------------
 void osGenerateCrossCoreInterrupt(OsCoreId ActiveCore, OsCoreId TargetCore)
 {
-  #warning "osGenerateCrossCoreInterrupt is not implemented"
+  (void)ActiveCore;
+  (void)TargetCore;
+  HW_PER_SIO->DOORBELL_OUT_SET.reg |= (1ul << 0);
+}
+
+//------------------------------------------------------------------------------------------------------------------
+/// \brief  
+///
+/// \descr  
+///
+/// \param  
+///
+/// \return 
+//------------------------------------------------------------------------------------------------------------------
+void osClearCrossCoreInterrupt(void)
+{
+  HW_PER_SIO->DOORBELL_IN_CLR.reg |= (1ul << 0);
+}
+
+uint32_t osHwTryToAcquireSpinLock(uint32_t* lock)
+{
+  (void)lock;
+  #warning "osHwTryToAcquireSpinLock is not implemented"
+  return 0;
 }

@@ -20,10 +20,6 @@
 #include"OsTypes.h"
 #include"OsAsm.h"
 
-#define OS_GEN_NOT
-#include"OsGenCfg.h"
-#undef  OS_GEN_NOT
-
 #include "core_arch.h"
 #include "RP2350.h"
 
@@ -65,5 +61,6 @@ void osHwAcquireSpinLock(uint32_t* lock);
 void osHwReleaseSpinLock(uint32_t* lock);
 
 void osGenerateCrossCoreInterrupt(OsCoreId ActiveCore, OsCoreId TargetCore);
-
+void osClearCrossCoreInterrupt(void);
+uint32_t osHwTryToAcquireSpinLock(uint32_t* lock);
 #endif

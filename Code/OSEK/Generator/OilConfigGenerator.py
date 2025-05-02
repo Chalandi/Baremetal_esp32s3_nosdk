@@ -304,6 +304,8 @@ if (args.gen_folder != None):
             print(f" IntCat1LowPrio = {IntCat1LowPrio}, IntCat2HighPrio = {IntCat2HighPrio}")
             quit()
         else:
+            if(IntCat1LowPrio == 0xffffffff):
+                IntCat1LowPrio = IntCat2HighPrio + 1
             OilInterrupts.InterruptCat1LowestPrio[CoreIdx].append(IntCat1LowPrio)
 
     ##################################################################################################
