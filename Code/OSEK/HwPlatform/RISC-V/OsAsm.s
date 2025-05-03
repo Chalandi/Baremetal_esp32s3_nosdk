@@ -306,6 +306,35 @@ osHwAcquireSpinLock:  lr.w a1, (a0)
 .size osHwAcquireSpinLock, .-osHwAcquireSpinLock
 
 /* ----------------------------------------------------------------------------------------------------------------- */
+/*  \brief  uint32_t osHwTryToAcquireSpinLock(uint32_t* lock)                                                        */
+/*                                                                                                                   */
+/*  \descr                                                                                                           */
+/*                                                                                                                   */
+/*  \param                                                                                                           */
+/*                                                                                                                   */
+/*  \return uint32_t  0 -> not acquired, 1 -> acquired                                                               */
+/* ----------------------------------------------------------------------------------------------------------------- */
+.section ".text", "ax"
+.align 2
+.globl osHwTryToAcquireSpinLock
+.type  osHwTryToAcquireSpinLock, @function
+
+
+osHwTryToAcquireSpinLock:  
+                      lr.w a1, (a0)
+                      bne zero, a1, .L_not_acquired
+                      add a1, zero, 1
+                      sc.w t0, a1, (a0)
+                      bnez t0, .L_not_acquired
+                      add a0, x0, 1
+                      ret
+.L_not_acquired:
+                     mv a0, x0
+                     ret
+
+.size osHwTryToAcquireSpinLock, .-osHwTryToAcquireSpinLock
+
+/* ----------------------------------------------------------------------------------------------------------------- */
 /*  \brief  void osHwReleaseSpinLock(uint32_t* lock)                                                                 */
 /*                                                                                                                   */
 /*  \descr                                                                                                           */

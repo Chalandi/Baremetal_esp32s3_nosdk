@@ -1,7 +1,7 @@
 /******************************************************************************************
   Filename    : OsAsm.s
 
-  Core        : ARM Cortex®-M
+  Core        : ARM Cortexï¿½-M
 
   Author      : Chalandi Amine
 
@@ -342,6 +342,37 @@ osHwAcquireSpinLock:
 
 
 .size osHwAcquireSpinLock, .-osHwAcquireSpinLock
+
+/*******************************************************************************************
+  \brief  uint32_t osHwTryToAcquireSpinLock(uint32_t* lock)
+  
+  \param  
+  
+  \return uint32_t  0 -> not acquired, 1 -> acquired
+********************************************************************************************/
+.thumb_func
+.section ".text", "ax"
+.align 8
+.globl osHwTryToAcquireSpinLock
+.type  osHwTryToAcquireSpinLock, % function
+
+osHwTryToAcquireSpinLock:
+                mov     r1, #1
+                ldaex   r2, [r0]
+                cmp     r2, #0
+                bne     .L_not_acquired
+                strex   r2, r1, [r0]
+                cmp     r2, #0
+                bne     .L_not_acquired
+                dmb
+                mov r0, #1
+                bx      lr
+.L_not_acquired:
+                mov r0, #0
+                bx      lr
+
+
+.size osHwTryToAcquireSpinLock, .-osHwTryToAcquireSpinLock
 
 /*******************************************************************************************
   \brief  

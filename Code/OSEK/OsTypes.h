@@ -254,7 +254,14 @@ typedef struct{
 
 typedef enum{
   IPC_NOK = 0,
-  IPC_OK
+  IPC_OK,
+  IPC_CROSS_CORE_NOT_ALLOWED,
+  IPC_OWNER_TASK_SUSPENDED,
+  IPC_WRONG_OWNER_TASK,
+  IPC_QUEUE_IS_FULL,
+  IPC_QUEUE_IS_EMPTY,
+  IPC_RELEASE_RESOURCE_ERROR,
+  IPC_GET_RESOURCE_ERROR
 }IpcStatus;
 
 #define OS_IPC_DEF_MBX_QUEUE(name, taskId, size, ressource, event, _mode)   OS_CIRCULAR_FIFO_DEF(name,size); \

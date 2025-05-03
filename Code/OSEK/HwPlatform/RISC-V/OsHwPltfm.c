@@ -286,9 +286,3 @@ void osClearCrossCoreInterrupt(void)
   HW_PER_SIO->DOORBELL_IN_CLR.reg |= (1ul << 0);
 }
 
-uint32_t osHwTryToAcquireSpinLock(uint32_t* lock)
-{
-  (void)lock;
-  #warning "osHwTryToAcquireSpinLock is not implemented"
-  return 0;
-}

@@ -297,10 +297,3 @@ void osClearCrossCoreInterrupt(void)
   const uint32 osActiveCore = osGetLogicalCoreId(osGetCoreId());
   HW_PER_SIO->DOORBELL_IN_CLR.reg |= (1ul << osActiveCore);
 }
-
-uint32_t osHwTryToAcquireSpinLock(uint32_t* lock)
-{
-  (void)lock;
-  #warning "osHwTryToAcquireSpinLock is not implemented"
-  return 0;
-}

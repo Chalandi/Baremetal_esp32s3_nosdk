@@ -379,13 +379,13 @@ uint32 osIntCallDispatch(uint32 StackPtr)
   /* get the interrupt nesting level */
   const uint32 OsInterruptNestingDepth = osGetIntNestingLevel();
 
-  /* restore the interrupt nesting priority level */
-  osSetInterruptPriorityMask(OCB_Cfg[osActiveCore]->pInt->OsIntNestSavedPrioLevel[OsInterruptNestingDepth - 1u]);
-
   if(OsInterruptNestingDepth == 1u)
   {
     /* Disable the Hw nesting */
     osDisableIntNesting();
+
+    /* restore the interrupt nesting priority level */
+    osSetInterruptPriorityMask(OCB_Cfg[osActiveCore]->pInt->OsIntNestSavedPrioLevel[OsInterruptNestingDepth - 1u]);
 
     /* Reset the flag */
     OCB_Cfg[osActiveCore]->OsCat2InterruptLevel = 0;

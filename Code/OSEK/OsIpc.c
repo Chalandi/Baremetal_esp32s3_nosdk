@@ -41,19 +41,27 @@ IpcStatus OS_IpcSendData(OsIpcMbxCfgType* const MsgBox, OsIpcMbxdataType const* 
   if((IPC_MBX_MODE_LOCAL == MsgBox->mode) && (osActiveCore != osTaskCoreAsgnLookupTable[MsgBox->owner].pinned_core))
   {
     /* the active core is not allowed to use the mailbox */
-    return(IPC_NOK);
+    return(IPC_CROSS_CORE_NOT_ALLOWED);
   }
 
   /* get the owner state status */
   (void)OS_GetTaskState(MsgBox->owner, &taskstate);
 
-  /* before sending the data check if the queue has enough space or not
-     and the target task not suspended */
-  if(size <= osCircularFifoQueue_GetAvailableSize(MsgBox->pQueue) && (taskstate != SUSPENDED))
+  /* check if the target task is suspended or not */
+  if(taskstate == SUSPENDED)
+  {
+    return(IPC_OWNER_TASK_SUSPENDED);
+  }
+
+  /* check if the queue has enough space */
+  if(size <= osCircularFifoQueue_GetAvailableSize(MsgBox->pQueue))
   {
     if(IPC_MBX_MODE_LOCAL == MsgBox->mode)
     {
-      OS_GetResource(MsgBox->res);
+      if(E_OK != OS_GetResource(MsgBox->res))
+      {
+        return(IPC_GET_RESOURCE_ERROR);
+      }
     }
     else
     {
@@ -68,7 +76,10 @@ IpcStatus OS_IpcSendData(OsIpcMbxCfgType* const MsgBox, OsIpcMbxdataType const* 
 
     if(IPC_MBX_MODE_LOCAL == MsgBox->mode)
     {
-      OS_ReleaseResource(MsgBox->res);
+      if(E_OK != OS_ReleaseResource(MsgBox->res))
+      {
+        return(IPC_RELEASE_RESOURCE_ERROR);
+      }
     }
     else
     {
@@ -83,7 +94,7 @@ IpcStatus OS_IpcSendData(OsIpcMbxCfgType* const MsgBox, OsIpcMbxdataType const* 
   }
   else
   {
-    return(IPC_NOK);
+    return(IPC_QUEUE_IS_FULL);
   }
 }
 
@@ -105,7 +116,7 @@ IpcStatus OS_IpcReceiveData(OsIpcMbxCfgType* const  MsgBox, OsIpcMbxdataType con
   || (osActiveCore != osTaskCoreAsgnLookupTable[MsgBox->owner].pinned_core))
   {
     /* the calling task is not allowed to use the mailbox */
-    return(IPC_NOK);
+    return(IPC_WRONG_OWNER_TASK);
   }
 
   /* check if the queue is not empty */
@@ -113,7 +124,10 @@ IpcStatus OS_IpcReceiveData(OsIpcMbxCfgType* const  MsgBox, OsIpcMbxdataType con
   {
     if(IPC_MBX_MODE_LOCAL == MsgBox->mode)
     {
-      OS_GetResource(MsgBox->res);
+      if(E_OK != OS_GetResource(MsgBox->res))
+      {
+        return(IPC_GET_RESOURCE_ERROR);
+      }
     }
     else
     {
@@ -128,7 +142,10 @@ IpcStatus OS_IpcReceiveData(OsIpcMbxCfgType* const  MsgBox, OsIpcMbxdataType con
 
     if(IPC_MBX_MODE_LOCAL == MsgBox->mode)
     {
-      OS_ReleaseResource(MsgBox->res);
+      if(E_OK != OS_ReleaseResource(MsgBox->res))
+      {
+        return(IPC_RELEASE_RESOURCE_ERROR);
+      }
     }
     else
     {
@@ -140,6 +157,6 @@ IpcStatus OS_IpcReceiveData(OsIpcMbxCfgType* const  MsgBox, OsIpcMbxdataType con
   }
   else
   {
-    return(IPC_NOK);
+    return(IPC_QUEUE_IS_EMPTY);
   }
 }
