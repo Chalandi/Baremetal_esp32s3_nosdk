@@ -186,11 +186,13 @@ OsStatusType OS_WaitEvent(OsEventMaskType Mask)
     {
       /* event not present -> set current task to waiting */
       OCB_Cfg[osActiveCore]->pTcb[OCB_Cfg[osActiveCore]->OsCurrentTaskId]->TaskStatus = WAITING;
-      
+
+      /* Clear the current task's ready bit */
+      osClearTaskPrioReady(OCB_Cfg[osActiveCore]->pTcb[OCB_Cfg[osActiveCore]->OsCurrentTaskId]->Prio);
+
       /* Call the scheduler */
       (void)osSchedule();
     }
-    
     return(E_OK);
   }
 }

@@ -29,7 +29,7 @@
 #define NVIC_ISPRx ((volatile uint32*)(0xE000E200UL))
 
 
-#define osDispatch()         SET_PENDSV(); __asm("DSB"); __asm("NOP")
+#define osDispatch()          do{SET_PENDSV(); __asm("DSB"); __asm("NOP");}while(0)
 
 #define ENABLE_INTERRUPTS()       __asm("CPSIE I")
 #define DISABLE_INTERRUPTS()      __asm("CPSID I")

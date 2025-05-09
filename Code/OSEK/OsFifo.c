@@ -31,7 +31,7 @@
 //------------------------------------------------------------------------------------------------------------------
 uint8_t osCircularFifoQueue_IsEmpty(OsCircularFifoQueueDataType* pfifo)
 {
-  return((pfifo->PopPtr == pfifo->PushPtr) ? 1 : 0);
+    return (pfifo->PushPtr == pfifo->PopPtr);
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -45,13 +45,7 @@ uint8_t osCircularFifoQueue_IsEmpty(OsCircularFifoQueueDataType* pfifo)
 //------------------------------------------------------------------------------------------------------------------
 uint8_t osCircularFifoQueue_IsFull(OsCircularFifoQueueDataType* pfifo)
 {
-  uint8_t result=0;
-
-  if((pfifo->PopPtr == 0 && (pfifo->PushPtr + 1) == pfifo->size) || (pfifo->PopPtr == (pfifo->PushPtr +1)))
-  {
-    result = 1;
-  }
-  return(result);
+    return ((pfifo->PushPtr + 1) % pfifo->size) == pfifo->PopPtr;
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -65,18 +59,14 @@ uint8_t osCircularFifoQueue_IsFull(OsCircularFifoQueueDataType* pfifo)
 //------------------------------------------------------------------------------------------------------------------
 uint32_t osCircularFifoQueue_GetAvailableSize(OsCircularFifoQueueDataType* pfifo)
 {
-  if(pfifo->PopPtr < pfifo->PushPtr)
-  {
-    return((uint32_t)(pfifo->size - pfifo->PushPtr + pfifo->PopPtr));
-  }
-  else if(pfifo->PopPtr > pfifo->PushPtr)
-  {
-    return((uint32_t)(pfifo->PopPtr - pfifo->PushPtr));
-  }
-  else
-  {
-    return((uint32_t)(pfifo->size));
-  }
+    if (pfifo->PushPtr >= pfifo->PopPtr)
+    {
+        return (pfifo->size - (pfifo->PushPtr - pfifo->PopPtr) - 1);
+    }
+    else
+    {
+        return (pfifo->PopPtr - pfifo->PushPtr - 1);
+    }
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -90,7 +80,7 @@ uint32_t osCircularFifoQueue_GetAvailableSize(OsCircularFifoQueueDataType* pfifo
 //------------------------------------------------------------------------------------------------------------------
 uint32_t osCircularFifoQueue_GetCurrentConsumption(OsCircularFifoQueueDataType* pfifo)
 {
-  return((uint32_t)(pfifo->size - osCircularFifoQueue_GetAvailableSize(pfifo)));
+    return (pfifo->size - osCircularFifoQueue_GetAvailableSize(pfifo) - 1);
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -104,24 +94,18 @@ uint32_t osCircularFifoQueue_GetCurrentConsumption(OsCircularFifoQueueDataType* 
 //------------------------------------------------------------------------------------------------------------------
 uint8_t osCircularFifoQueue_Push(OsCircularFifoQueueDataType* pfifo, uint8_t* data, uint32_t size)
 {
-  if(size <= osCircularFifoQueue_GetAvailableSize(pfifo))
-  {
-    for(uint32_t cpt=0;cpt < size; cpt++)
+    if (size > osCircularFifoQueue_GetAvailableSize(pfifo))
     {
-      if(pfifo->PushPtr == pfifo->size)
-      {
-        pfifo->PushPtr = 0;
-      }
-      pfifo->buf[pfifo->PushPtr] = data[cpt];
-      pfifo->PushPtr++;
+        return 0; // Not enough space
     }
-    return(1);
-  }
-  else
-  {
-    /* No more space in FIFO */
-    return(0);
-  }
+
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        pfifo->buf[pfifo->PushPtr] = data[i];
+        pfifo->PushPtr = (pfifo->PushPtr + 1) % pfifo->size;
+    }
+
+    return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -135,25 +119,18 @@ uint8_t osCircularFifoQueue_Push(OsCircularFifoQueueDataType* pfifo, uint8_t* da
 //------------------------------------------------------------------------------------------------------------------
 uint8_t osCircularFifoQueue_Pop(OsCircularFifoQueueDataType* pfifo, uint8_t* data, uint32_t size)
 {
-  if(size <= osCircularFifoQueue_GetCurrentConsumption(pfifo))
-  {
-    /* Available data */
-    for(uint32_t cpt=0;cpt < size; cpt++)
+    if (size > osCircularFifoQueue_GetCurrentConsumption(pfifo))
     {
-      if(pfifo->PopPtr == pfifo->size)
-      {
-        pfifo->PopPtr = 0;
-      }
-      data[cpt] = pfifo->buf[pfifo->PopPtr];
-      pfifo->PopPtr++;
+        return 0; // Not enough data
     }
-    return(1);
-  }
-  else
-  {
-    /* Not available data size */
-    return(0);
-  }
+
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        data[i] = pfifo->buf[pfifo->PopPtr];
+        pfifo->PopPtr = (pfifo->PopPtr + 1) % pfifo->size;
+    }
+
+    return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -167,24 +144,17 @@ uint8_t osCircularFifoQueue_Pop(OsCircularFifoQueueDataType* pfifo, uint8_t* dat
 //------------------------------------------------------------------------------------------------------------------
 uint8_t osCircularFifoQueue_ReadCopy(OsCircularFifoQueueDataType* pfifo, uint8_t* data, uint32_t size)
 {
-  if(size <= osCircularFifoQueue_GetCurrentConsumption(pfifo))
-  {
-    /* Available data */
-    uint32_t ptr = pfifo->PopPtr;
-    for(uint32_t cpt=0;cpt < size; cpt++)
+    if (size > osCircularFifoQueue_GetCurrentConsumption(pfifo))
     {
-      if(ptr == pfifo->size)
-      {
-        ptr = 0;
-      }
-      data[cpt] = pfifo->buf[ptr];
-      ptr++;
+        return 0; // Not enough data
     }
-    return(1);
-  }
-  else
-  {
-    /* Not available data size */
-    return(0);
-  }
+
+    uint32_t ptr = pfifo->PopPtr;
+    for (uint32_t i = 0; i < size; ++i)
+    {
+        data[i] = pfifo->buf[ptr];
+        ptr = (ptr + 1) % pfifo->size;
+    }
+
+    return 1;
 }

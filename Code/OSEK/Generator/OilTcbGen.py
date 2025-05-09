@@ -86,6 +86,9 @@ def OsConfigTcbGeneration(args, OilOs,
         OsGenTcbSourceFile.write(f"\n  Interrupts on core{core_idx}:\n  "+tabulate(OilInterrupts.InterruptsList_per_core[core_idx], headers=["Name", "Category", "Vector", "Prio", "Nesting", "Core"], tablefmt='fancy_grid').replace("\n", "\n" + "  ")+"\n")
         OsGenTcbSourceFile.write(f"  Total number of used interrupts: {len(OilInterrupts.InterruptsList_per_core[core_idx])}"+"\n")
         OsGenTcbSourceFile.write(f"  Total number of CPU interrupts : {OilOs.OsMaxVectorEntries}"+"\n")
+
+    # Display IPC info
+    OsGenTcbSourceFile.write(f"\n  IPC :\n  "+tabulate(OilMbx.OsMbxList, headers=["Name", "Owner Task", "Resource", "Event", "Mode", "Size"], tablefmt='fancy_grid').replace("\n", "\n" + "  ")+"\n")
     OsGenTcbSourceFile.write("*/\n\n")
 
 ####################################################################
